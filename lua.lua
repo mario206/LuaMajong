@@ -110,13 +110,7 @@ local function ValidKe(pai,i,n)
 end
 
 
-local function ValidShun(pai,i,n)
-	if i + 2 <= n and pai[i] == (pai[i+1] - 1) and pai[i] == (pai[i+2] - 2)	then
-		return true
-	else
-		return false
-	end
-end
+
 
 local function ValidGang(pai,i,n)
 	if i + 3 <= n and pai[i] == pai[i+1] and pai[i] == pai[i+2] and pai[i] == pai[i+3]	then
@@ -149,10 +143,65 @@ local function ValidGang_p(pai,i,n)	-- 针对风牌箭牌的特化版
 	else
 		return false
 	end
+end
+ function ValidShun(pai,i,n)
+	-- 顺子要避开 1 222 3  这种可能组成 123 22 的情况
+	-- 所以拆成两个列表  (1 2 3)|(22)
+	-- 然后判断 ValidHu(22)
 
+	-- 只有两张牌，必定没顺
+	if n - i < 2	then
+		return false
+	end
+
+	local found_B = false
+	local found_C = false
+	for j = i+1,#pai,1 do
+		if found_B == false and pai[j] == ( pai[i] + 1 ) then
+			found_B = true
+			-- 交换两张牌的位置
+			t = pai[i + 1]
+			pai[i + 1] = pai[j]
+			pai[j] = t
+		end
+	end
+
+	for k = i + 2,#pai,1 do
+		if found_C== false and pai[k] == ( pai[i] + 2 ) then
+			found_C = true
+			-- 交换两张牌的位置
+			t = pai[i + 2]
+			pai[i + 2] = pai[k]
+			pai[k] = t
+		end
+	end
+
+	-- for k  = 1,#pai,1 do
+	-- 	print (pai[k])
+	-- end
+
+	-- 如果能找到顺，判断剩下的牌是否能胡
+	if found_B == true and found_C == true then
+		-- 创建待判断列表
+		local new_list = {}
+		local k = 1
+		for j = i + 3,#pai,1 do
+			new_list[k] = pai[j]
+			k = k + 1
+		end
+		-- 对新建数组进行排序
+		table.sort(new_list)
+		-- for k = 1,#new_list,1 do
+		-- 	print (new_list[k])
+		-- end
+		return ValidHu(new_list,1,#new_list)
+	else
+		return false
+	end
 end
 
-local function ValidHu(pai,i,n)
+
+function ValidHu(pai,i,n)
 	-- 空牌组直接胡
 	if n == 0	then
 		return true
@@ -172,12 +221,15 @@ local function ValidHu(pai,i,n)
 		return true
 	elseif ValidGang(pai,i,n) and ValidHu(pai,i+4,n) then
 		return true
-	elseif ValidShun(pai,i,n) and ValidHu(pai,i+4,n) then
+	-- elseif ValidShun(pai,i,n) and ValidHu(pai,i+4,n) then
+	elseif ValidShun(pai,i,n)	then	-- 顺内部构建新数组调用ValidHu
 		return true
 	else
 		return false
 	end
 end
+
+
 
 
 
@@ -232,13 +284,21 @@ end
 local pai_list = {
 				{11,11},
 				{11,11,11},
-				{11,11,11,11}
+				{11,11,11,11},
+				{11,12,13},
+				{11,12,13,14},
+				{11,12,12,12,13},		--特殊
+				{11,22,23,24,25},
 }
 
 for i = 1,#pai_list,1 do
-	if CheckHu(pai_list[i]) then
-		print (i,"胡")
-	else
-		print(i,"不能胡")
+	for j = 1,#pai_list[i],1 do
+		io.write(pai_list[i][j],',')
 	end
+	if CheckHu(pai_list[i]) then
+		print("胡")
+	else
+		print("不能胡")
+	end
+	io.write('\n')
 end

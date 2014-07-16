@@ -1,6 +1,38 @@
+-- 十位：
+-- 1:万    2:筒     3:条     4:字      5:花
 
---返回打乱的136张麻将
-function get()
+-- 个位：
+-- 1-9:1-9
+-- 1-7:东 南 西 北 红中 白板 发财
+-- 1-8:梅 兰 竹 菊 春 夏 秋 冬
+
+-- 例如
+-- 八筒：28
+
+-- 函数列表:
+-- public:
+--          is_good_pai(pai)             判断同一花色的牌是否能胡,返回true or false
+--          get_disarranged_majong()     返回随机打乱的136张麻将
+--          get_four_group_pai(majong)   根据传入的136张麻将，返回4组牌，每组14张
+--          sort_pai_by_type(pai)        根据传入的14张牌，分成5种花色的牌返回
+--          print_pai_in_word(pai)       打印传入的牌
+
+-- private: _is_good_pai(pai)            判断同一花色的牌是否能胡,返回true or false
+
+NUM = {
+{"一","二","三","四","五","六","七","八","九"},
+{"一","二","三","四","五","六","七","八","九"},
+{"一","二","三","四","五","六","七","八","九"},
+{"东","南","西","北","中","白","发"}
+}
+TYPE= {"万","筒","条",""}
+
+
+
+
+
+-- 返回打乱的136张麻将
+function get_disarranged_majong()
     local majong = {
             11,11,11,11,12,12,12,12,13,13,13,13,
             14,14,14,14,15,15,15,15,16,16,16,16,
@@ -59,28 +91,47 @@ function get_fourgroup_pai(majong)
     return Pai1,Pai2,Pai3,Pai4
 end
 
+function print_pai_in_word(pai)
+
+    for i = 1,#pai do
+        local m_num = pai[i] % 10;
+        pai[i] = pai[i] / 10;
+        local m_type = math.floor(pai[i] % 10);
+        io.write(NUM[m_type][m_num],TYPE[m_type]',')
+    end
+    io.write('\n')
+end
+
+
 
 -- 打乱检测
-local majong = get()
+
+
+local majong = get_disarranged_majong()
 local paiA = {}
 local paiB = {}
 local paiC = {}
 local paiD = {}
 paiA,paiB,paiC,paiD = get_fourgroup_pai(majong)
-for i = 1,#paiA do
-    io.write(paiA[i],',')
-end
-io.write('\n')
-for i = 1,#paiB do
-    io.write(paiB[i],',')
-end
-io.write('\n')
-for i = 1,#paiC do
-    io.write(paiC[i],',')
-end
-io.write('\n')
-for i = 1,#paiD do
-    io.write(paiD[i],',')
-end
-io.write('\n')
+print_pai_in_word(paiA)
+print_pai_in_word(paiB)
+print_pai_in_word(paiC)
+print_pai_in_word(paiD)
+
+-- for i = 1,#paiA do
+--     io.write(paiA[i],',')
+-- end
+-- io.write('\n')
+-- for i = 1,#paiB do
+--     io.write(paiB[i],',')
+-- end
+-- io.write('\n')
+-- for i = 1,#paiC do
+--     io.write(paiC[i],',')
+-- end
+-- io.write('\n')
+-- for i = 1,#paiD do
+--     io.write(paiD[i],',')
+-- end
+-- io.write('\n')
 

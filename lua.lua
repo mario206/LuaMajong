@@ -93,7 +93,7 @@ local function SortByType(userpai)
 	return sort_pai
 end
 
-local function ValidDui(pai,i,n)
+local function ValidAA(pai,i,n)
 	if i + 1 <= n and pai[i] == pai[i+1]	then
 		return true
 	else
@@ -101,7 +101,7 @@ local function ValidDui(pai,i,n)
 	end
 end
 
-local function ValidKe(pai,i,n)
+local function ValidAAA(pai,i,n)
 	if i + 2 <= n and pai[i] == pai[i+1] and pai[i] == pai[i+2]	then
 		return true
 	else
@@ -112,7 +112,7 @@ end
 
 
 
-local function ValidGang(pai,i,n)
+local function ValidAAAA(pai,i,n)
 	if i + 3 <= n and pai[i] == pai[i+1] and pai[i] == pai[i+2] and pai[i] == pai[i+3]	then
 		return true
 	else
@@ -120,7 +120,7 @@ local function ValidGang(pai,i,n)
 	end
 end
 
-local function ValidDui_p(pai,i,n)	-- 针对风牌箭牌的特化版
+local function ValidAA_p(pai,i,n)	-- 针对风牌箭牌的特化版
 	if i + 1 <= n and pai[i] == pai[i+1] then
 		return true
 	else
@@ -128,23 +128,22 @@ local function ValidDui_p(pai,i,n)	-- 针对风牌箭牌的特化版
 	end
 end
 
-local function ValidKe_p(pai,i,n)     -- 针对风牌箭牌的特化版
+local function ValidAAA_p(pai,i,n)     -- 针对风牌箭牌的特化版
 	if i + 2 <= n and pai[i] == pai[i+1] and pai[i] == pai[i+2] then
 		return true
 	else
 		return false
 	end
-
 end
 
-local function ValidGang_p(pai,i,n)	-- 针对风牌箭牌的特化版
+local function ValidAAAA_p(pai,i,n)	-- 针对风牌箭牌的特化版
 	if i + 3 <= n and pai[i] == pai[i+1] and pai[i] == pai[i+2] and pai[i] == pai[i+3]	then
 		return true
 	else
 		return false
 	end
 end
- function ValidShun(pai,i,n)
+ function ValidABC(pai,i,n)
 	-- 顺子要避开 1 222 3  这种可能组成 123 22 的情况
 	-- 所以拆成两个列表  (1 2 3)|(22)
 	-- 然后判断 ValidHu(22)
@@ -215,14 +214,14 @@ function ValidHu(pai,i,n)
 		return true
 	end
 
-	if ValidDui(pai,i,n) and ValidHu(pai,i+2,n) then
+	if ValidAA(pai,i,n) and ValidHu(pai,i+2,n) then
 		return true
-	elseif ValidKe(pai,i,n)	and ValidHu(pai,i+3,n) then
+	elseif ValidAAA(pai,i,n)	and ValidHu(pai,i+3,n) then
 		return true
-	elseif ValidGang(pai,i,n) and ValidHu(pai,i+4,n) then
+	elseif ValidAAAA(pai,i,n) and ValidHu(pai,i+4,n) then
 		return true
-	-- elseif ValidShun(pai,i,n) and ValidHu(pai,i+4,n) then
-	elseif ValidShun(pai,i,n)	then	-- 顺内部构建新数组调用ValidHu
+	-- elseif ValidABC(pai,i,n) and ValidHu(pai,i+4,n) then
+	elseif ValidABC(pai,i,n)	then	-- 顺内部构建新数组调用ValidHu
 		return true
 	else
 		return false
@@ -246,12 +245,12 @@ local function ValidHu_p(pai,i,n)		-- 针对风牌箭牌的特化版 不用判�
 	if i > n 	then
 		return true
 	end
-	if ValidDui_p(pai,i,n)	then
-		return ValidHu_p(pai,i+2,n)
-	elseif ValidKe_p(pai,i,n)	then
-		return ValidHu_p(pai,i+3,n)
-	elseif ValidGang_p(pai,i,n)	then
-		return ValidHu_p(pai,i+4,n)
+	if ValidAA_p(pai,i,n) and ValidHu_p(pai,i+2,n) then
+		return true
+	elseif ValidAAA_p(pai,i,n) and ValidHu_p(pai,i+3,n) then
+		return true
+	elseif ValidAAAA_p(pai,i,n)	and ValidHu_p(pai,i+4,n) then
+		return true
 	end
 	return false
 end
@@ -289,6 +288,8 @@ local pai_list = {
 				{11,12,13,14},
 				{11,12,12,12,13},		--特殊
 				{11,22,23,24,25},
+				{51,51,51},
+				{51,52,53}
 }
 
 for i = 1,#pai_list,1 do

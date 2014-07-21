@@ -811,7 +811,13 @@ end
 
 local function checkJLBD(userPai)
   -- 穷举法
-  local JLBD_list = {
+  -- 构造新列表 （ 使牌只有牌型和牌号)
+  local t_pai = {}
+  for i = 1,#userPai do
+    table.insert(t_pai,GetPaiTypeNum(userPai[i]))
+  end
+  
+  local JLBD_list = { 
    --{11,11,11,12,13,14,15,16,17,18,19,19,19},
    {11,11,11,11,12,13,14,15,16,17,18,19,19,19},{11,11,11,12,12,13,14,15,16,17,18,19,19,19},
    {11,11,11,12,13,13,14,15,16,17,18,19,19,19},{11,11,11,12,13,14,14,15,16,17,18,19,19,19},
@@ -829,11 +835,11 @@ local function checkJLBD(userPai)
    {31,31,31,32,33,34,35,36,37,38,39,39,39,39}}
 
    local found = false
-   local n = #userPai
+   local n = #t_pai
    local count = 0
    for i = 1,#JLBD_list do
-    for j = 1,#userPai do
-      if userPai[j] == JLBD_list[i][j] then
+    for j = 1,#t_pai do
+      if t_pai[j] == JLBD_list[i][j] then
         count = count + 1
       else count = 0 end
       if count == n then return true end

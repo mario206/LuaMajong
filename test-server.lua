@@ -890,8 +890,8 @@ local function CheckDSX(userPai)
 
   for i=1,#userPai
   do
-    if CheckSinglePaiType(userPai[i]) == MJ_FENG
-    then
+    if CheckSinglePaiType(userPai[i]) == MJ_FENG 
+      then
       --东
       if CheckSinglePaiNum(userPai[i]) == 1
       then
@@ -915,7 +915,7 @@ local function CheckDSX(userPai)
     end
   end
 
-  if dong<3 or xi<3 or nan<3 or bei<3
+  if dong < 3 or xi < 3 or nan < 3 or bei < 3
   then
     return false
   else
@@ -929,6 +929,8 @@ local function CheckSSY(userPai)
   --  典型  11 19 21 29 31 39 41 43 45 47 51 53 55 55
 
   local sort_pai = SortByType(userPai)
+  -- 判断每组牌是否起码有2张
+  if #sort_pai["My"][MJ_WAN] < 2 or #sort_pai["My"][MJ_TIAO] < 2 or #sort_pai["My"][MJ_BING] < 2 then return false end
 
   if CheckSinglePaiNum(sort_pai["My"][MJ_WAN][1])  ~= 1 or CheckSinglePaiNum(sort_pai["My"][MJ_WAN][2])   ~= 9 then return false end
   if CheckSinglePaiNum(sort_pai["My"][MJ_TIAO][1]) ~= 1 or CheckSinglePaiNum(sort_pai["My"][MJ_TIAO][2]) ~= 9 then return false end
@@ -1196,6 +1198,10 @@ local list = {
  {11,11,11,12,13,14,15,16,17,17,18,19,19,19},
  {11,11,11,12,13,14,15,16,17,18,18,19,19,19},
  {11,11,11,12,13,14,15,16,17,18,19,19,19,19},
+ -- 大四喜
+ {41,41,41,43,43,43,45,45,45,47,47,47,51,51},
+ {41,41,41,43,43,43,45,45,45,47,47,47,11,11},
+
 
 }
 

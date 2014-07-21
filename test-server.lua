@@ -297,96 +297,6 @@ end
 
 
 
-function CheckHu(userPai,zimoPai)
-  --测试胡牌
-  --IN:用户牌，自摸牌
-  --OUT：true-胡，false-不能胡
-
-
-  local paiGroup = SortByType(userPai)
-  --插入自摸牌
-  local type = CheckSinglePaiType(zimoPai)
-  table.insert(paiGroup["My"][type],zimoPai)
-  table.sort( paiGroup["My"][type], function(a,b) return a<b end)
-
-
-  local jiangPaiNum = 0   --通过将牌的测试判断胡
-  for i=1,5
-  do
-    if #(paiGroup["My"][i]) == 2
-    then
-      if CheckAAPai(paiGroup["My"][i][1],paiGroup["My"][i][2]) == false
-      then
-        return false
-      else
-        jiangPaiNum=jiangPaiNum+1
-      end
-    elseif #(paiGroup["My"][i]) == 3
-    then
-      if Check3Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3]) == false
-      then
-        return false
-      end
-    elseif #(paiGroup["My"][i]) == 5
-    then
-      if Check5Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5]) == false
-      then
-        return false
-      else
-        jiangPaiNum=jiangPaiNum+1
-      end
-    elseif #(paiGroup["My"][i]) == 6
-    then
-      if Check6Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6]) == false
-      then
-        return false
-      end
-    elseif #(paiGroup["My"][i]) == 8
-    then
-      if Check8Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8]) == false
-      then
-        return false
-      else
-        jiangPaiNum=jiangPaiNum+1
-      end
-    elseif #(paiGroup["My"][i]) == 9
-    then
-      if Check9Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8],paiGroup["My"][i][9]) == false
-      then
-        return false
-      end
-    elseif #(paiGroup["My"][i]) == 11
-    then
-      if Check11Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8],paiGroup["My"][i][9],paiGroup["My"][i][10],paiGroup["My"][i][11]) == false
-      then
-        return false
-      else
-        jiangPaiNum=jiangPaiNum+1
-      end
-    elseif #(paiGroup["My"][i]) == 12
-    then
-      if Check12Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8],paiGroup["My"][i][9],paiGroup["My"][i][10],paiGroup["My"][i][11],paiGroup["My"][i][12]) == false
-      then
-        return false
-      end
-    elseif #(paiGroup["My"][i]) == 14
-    then
-      if Check14Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8],paiGroup["My"][i][9],paiGroup["My"][i][10],paiGroup["My"][i][11],paiGroup["My"][i][12],paiGroup["My"][i][13],paiGroup["My"][i][14]) == false
-      then
-        return false
-      else
-        jiangPaiNum=jiangPaiNum+1
-      end
-    end
-  end
-
-  if jiangPaiNum == 1
-  then
-    return true
-  else
-    return false
-  end
-end
 
 
 
@@ -776,7 +686,6 @@ end
 
 local function CheckHYJ(userPai)
   --检测混幺九
-
   -- 对 （万，饼，条 ）满足 幺九
   for i = 1,#userPai do
     local paitype = CheckSinglePaiType(userPai[i])
@@ -1014,9 +923,10 @@ local function CheckSSY(userPai)
   --  典型  11 19 21 29 31 39 41 43 45 47 51 53 55 55
 
   local sort_pai = SortByType(userPai)
-  if sort_pai["My"][MJ_WAN][1] ~= 11 or sort_pai["My"][MJ_WAN][2] ~= 19 then return false end
-  if sort_pai["My"][MJ_TIAO][1] ~= 21 or sort_pai["My"][MJ_TIAO][2] ~= 29 then return false end
-  if sort_pai["My"][MJ_BING][1] ~= 31 or sort_pai["My"][MJ_BING][2] ~= 39 then return false end
+
+  if CheckSinglePaiNum(sort_pai["My"][MJ_WAN][1])  ~= 1 or CheckSinglePaiNum(sort_pai["My"][MJ_WAN][2])   ~= 9 then return false end
+  if CheckSinglePaiNum(sort_pai["My"][MJ_TIAO][1]) ~= 1 or CheckSinglePaiNum(sort_pai["My"][MJ_TIAO][2]) ~= 9 then return false end
+  if CheckSinglePaiNum(sort_pai["My"][MJ_BING][1]) ~= 1 or CheckSinglePaiNum(sort_pai["My"][MJ_BING][2])  ~= 9 then return false end
 
   local dong  = 0
   local nan   = 0
@@ -1048,7 +958,6 @@ local function CheckSSY(userPai)
   if dong and nan and xi and bei and zhong and fa and bai and (dong + nan + xi + bei + zhong + fa + bai  == 8) then
     return true
   else return false end
-    --return false end
 
 end
 
@@ -1112,15 +1021,105 @@ function CheckHuScore(userPai)
   end
 end
 
-local function CheckHu_p(userPai)
 
+local function CheckHu(userPai,zimoPai)
+  --测试胡牌
+  --IN:用户牌，自摸牌
+  --OUT：true-胡，false-不能胡
+
+
+  local paiGroup = SortByType(userPai)
+  --插入自摸牌
+  local type = CheckSinglePaiType(zimoPai)
+  table.insert(paiGroup["My"][type],zimoPai)
+  table.sort( paiGroup["My"][type], function(a,b) return a<b end)
+
+  -- 先检测特殊牌型 (十三幺 和 九莲宝灯), 要求传入原始的14张牌
   local t_pai = {}
   for i = 1,#userPai do
     table.insert(t_pai,userPai[i])
   end
-  local zimopai = table.remove(t_pai)
-  return CheckHu(t_pai,zimopai)
+  table.insert(t_pai,zimoPai)
 
+  if CheckSSY(t_pai) or CheckJLBD(t_pai) then return true end
+  -- 非十三幺，检测普通牌型
+
+  local jiangPaiNum = 0   --通过将牌的测试判断胡
+  for i=1,5
+  do
+    if #(paiGroup["My"][i]) == 2
+    then
+      if CheckAAPai(paiGroup["My"][i][1],paiGroup["My"][i][2]) == false
+      then
+        return false
+      else
+        jiangPaiNum=jiangPaiNum+1
+      end
+    elseif #(paiGroup["My"][i]) == 3
+    then
+      if Check3Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3]) == false
+      then
+        return false
+      end
+    elseif #(paiGroup["My"][i]) == 5
+    then
+      if Check5Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5]) == false
+      then
+        return false
+      else
+        jiangPaiNum=jiangPaiNum+1
+      end
+    elseif #(paiGroup["My"][i]) == 6
+    then
+      if Check6Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6]) == false
+      then
+        return false
+      end
+    elseif #(paiGroup["My"][i]) == 8
+    then
+      if Check8Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8]) == false
+      then
+        return false
+      else
+        jiangPaiNum=jiangPaiNum+1
+      end
+    elseif #(paiGroup["My"][i]) == 9
+    then
+      if Check9Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8],paiGroup["My"][i][9]) == false
+      then
+        return false
+      end
+    elseif #(paiGroup["My"][i]) == 11
+    then
+      if Check11Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8],paiGroup["My"][i][9],paiGroup["My"][i][10],paiGroup["My"][i][11]) == false
+      then
+        return false
+      else
+        jiangPaiNum=jiangPaiNum+1
+      end
+    elseif #(paiGroup["My"][i]) == 12
+    then
+      if Check12Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8],paiGroup["My"][i][9],paiGroup["My"][i][10],paiGroup["My"][i][11],paiGroup["My"][i][12]) == false
+      then
+        return false
+      end
+    elseif #(paiGroup["My"][i]) == 14
+    then
+      if Check14Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8],paiGroup["My"][i][9],paiGroup["My"][i][10],paiGroup["My"][i][11],paiGroup["My"][i][12],paiGroup["My"][i][13],paiGroup["My"][i][14]) == false
+      then
+        return false
+      else
+        jiangPaiNum=jiangPaiNum+1
+      end
+    end
+  end
+
+  if jiangPaiNum == 1
+  then
+    return true
+  else
+    return false
+  end
 end
 
 local function PrintPai(userpai)
@@ -1142,7 +1141,7 @@ end
 
 local function CheckPaiXing(userpai)
 
-  --if CheckHu_p(userpai) == false then return false end
+  if CheckHu_p(userpai) == false then return false end
   PrintPai(userpai)
   if CheckSSY(userpai)  == true then print("十三幺")  return true end
   if checkJLBD(userpai) == true then print("九莲宝灯") return true end
@@ -1165,23 +1164,23 @@ end
 
 local list = {
   {11,19,21,29,31,39,41,43,45,47,51,53,55,55},
-  {11,12,13,14,15,16,22,22,22,22,33,33,35,35},
-  -- 十三幺 成功
-  --{11,19,21,29,31,39, 41,43,45,47, 51,53,55}
-  {11,19,21,29,31,39,41,41,43,45,47,51,53,55},
-  {11,19,21,29,31,39,41,43,43,45,47,51,53,55},
-  {11,19,21,29,31,39,41,43,45,45,47,51,53,55},
-  {11,19,21,29,31,39,41,43,45,47,47,51,53,55},
-  {11,19,21,29,31,39,41,43,45,47,51,51,53,55},
-  {11,19,21,29,31,39,41,43,45,47,51,53,53,55},
-  {11,19,21,29,31,39,41,43,45,47,51,53,55,55},
-  -- 十三幺 失败
-  {11,11,19,21,29,31,39,41,43,45,47,51,53,55},
-  {11,19,19,21,29,31,39,41,43,45,47,51,53,55},
-  {11,19,21,21,29,31,39,41,43,45,47,51,53,55},
-  {11,19,21,29,29,31,39,41,43,45,47,51,53,55},
-  {11,19,21,29,31,31,39,41,43,45,47,51,53,55},
-  {11,19,21,29,31,39,39,41,43,45,47,51,53,55},
+--  {11,12,13,14,15,16,22,22,22,22,33,33,35,35},
+--  -- 十三幺 成功
+--  --{11,19,21,29,31,39, 41,43,45,47, 51,53,55}
+--  {11,19,21,29,31,39,41,41,43,45,47,51,53,55},
+--  {11,19,21,29,31,39,41,43,43,45,47,51,53,55},
+--  {11,19,21,29,31,39,41,43,45,45,47,51,53,55},
+--  {11,19,21,29,31,39,41,43,45,47,47,51,53,55},
+--  {11,19,21,29,31,39,41,43,45,47,51,51,53,55},
+--  {11,19,21,29,31,39,41,43,45,47,51,53,53,55},
+--  {11,19,21,29,31,39,41,43,45,47,51,53,55,55},
+--  -- 十三幺 失败
+--  {11,11,19,21,29,31,39,41,43,45,47,51,53,55},
+--  {11,19,19,21,29,31,39,41,43,45,47,51,53,55},
+--  {11,19,21,21,29,31,39,41,43,45,47,51,53,55},
+--  {11,19,21,29,29,31,39,41,43,45,47,51,53,55},
+--  {11,19,21,29,31,31,39,41,43,45,47,51,53,55},
+--  {11,19,21,29,31,39,39,41,43,45,47,51,53,55},
 
 }
 

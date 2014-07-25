@@ -17,20 +17,20 @@
 --CheckSSY()   --十三幺  1 、 9 万筒索，东、南、西、北、中、发、白；以上牌型任意一张牌作将
 
 
-local MJ_WAN       = 1      --万
+local MJ_WAN       = 1    --万
 local MJ_TIAO      = 2    --条
 local MJ_BING      = 3    --饼
 local MJ_FENG      = 4    --东南西北(1357)
-local MJ_ZFB     = 5    --中发白(135)
+local MJ_ZFB       = 5    --中发白(135)
 
-local Pai_MING    =0    --明
-local Pai_AN    =1    --暗
+local Pai_MING     = 0    --明
+local Pai_AN       = 1    --暗
 
-local Pai_My    =0    --手牌组
-local Pai_Chi   =1    --吃牌组
-local Pai_Peng    =2    --碰牌组
-local Pai_Gang    =3    --杠牌组
-local Pai_Ting    =4      --听牌组
+local Pai_My       = 0    --手牌组
+local Pai_Chi      = 1    --吃牌组
+local Pai_Peng     = 2    --碰牌组
+local Pai_Gang     = 3    --杠牌组
+local Pai_Ting     = 4    --听牌组
 
 
 
@@ -294,7 +294,117 @@ local function Check14Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6,iValue
   end
   return false
 end
+local function ValidAA(pai,i,n)
+  if i + 1 <= n and pai[i] == pai[i+1]  then
+    return true
+  else
+    return false
+  end
+end
 
+local function ValidAAA(pai,i,n)
+  if i + 2 <= n and pai[i] == pai[i+1] and pai[i] == pai[i+2] then
+    return true
+  else
+    return false
+  end
+end
+local function ValidABC(pai,i,n)
+  -- 顺子要避开 1 222 3  这种可能组成 123 22 的情况
+  -- 所以拆成两个列表  (1 2 3)|(22)
+  -- 然后判断 ValidHu(22)
+
+  -- 只有两张牌，必定没顺
+  if n - i < 2  then
+    return false
+  end
+
+  local found_B = false
+  local found_C = false
+  for j = i+1,#pai,1 do
+    if found_B == false and pai[j] == ( pai[i] + 1 ) then
+      found_B = true
+      -- 交换两张牌的位置
+      t = pai[i + 1]
+      pai[i + 1] = pai[j]
+      pai[j] = t
+    end
+  end
+
+  for k = i + 2,#pai,1 do
+    if found_C== false and pai[k] == ( pai[i] + 2 ) then
+      found_C = true
+      -- 交换两张牌的位置
+      t = pai[i + 2]
+      pai[i + 2] = pai[k]
+      pai[k] = t
+    end
+  end
+
+  -- for k  = 1,#pai,1 do
+  --  print (pai[k])
+  -- end
+
+  -- 如果能找到顺，判断剩下的牌是否能胡
+  if found_B == true and found_C == true then
+    -- 创建待判断列表
+    local new_list = {}
+    local k = 1
+    for j = i + 3,#pai,1 do
+      new_list[k] = pai[j]
+      k = k + 1
+    end
+    -- 对新建数组进行排序
+    table.sort(new_list)
+    -- for k = 1,#new_list,1 do
+    --  print (new_list[k])
+    -- end
+    return true,new_list
+  else
+    return false,{nil}
+  end
+end
+local function ValidHu(pai,i,n)
+  -- 空牌组直接胡
+  if n == 0 then
+    return true,0
+  end
+  -- 少于两个牌，不可能胡
+  if n < 2 then
+    return false,0
+  end
+  -- 检测到末尾，胡
+  if i > n then
+    return true,0
+  end
+  -- 测试AA
+  if ValidAA(pai,i,n) then
+    local t = false
+    local k = 0
+    t,k = ValidHu(pai,i+2,n)
+    if t == true then return true,k + 1 end
+  end
+  -- 测试 AAA
+  if ValidAAA(pai,i,n) then
+    local t = false
+    local k = 0
+    t,k = ValidHu(pai,i+3,n,0)
+    if t == true then return true,k  end
+  end
+  -- 对万，条，饼测试ABC
+  if CheckSinglePaiType(pai[1]) ~= MJ_FENG and CheckSinglePaiType(pai[1]) ~= MJ_ZFB then
+    local new_pai = {}
+    local t       = false
+    t,new_pai = ValidABC(pai,i,n)
+    if t == true then
+      local t2 = false
+      local k  = 0
+      t2,k = ValidHu(new_pai,1,#new_pai)
+      if t2 == true then return t2,k end
+    end
+  end
+  return false,0
+end
 
 
 
@@ -551,8 +661,34 @@ function CheckGangPai(userPai,prePai,isNotZiMo)
 end
 
 
-function CheckTingPai(paiGroup,attribute)
+function CheckTingPai(userPai,attribute)
+  -- 分组
+  sort_pai = SortByType(userPai)
+  -- 
   -- 检查听牌
+  local pai_info = {
+  [MJ_WAN]  = {false,0},
+  [MJ_TIAO] = {false,0},
+  [MJ_BING] = {false,0},
+  [MJ_FENG] = {false,0},
+  [MJ_ZFB]  = {false,0}
+}
+  -- 统计各分组胡牌及将牌情况
+  for i = 1,#sort_pai["My"] do
+    pai_info[i][1],pai_info[i][2] = ValidHu(sort_pai["My"][i],1,#sort_pai["My"][i])
+  end
+
+  -- 统计 胡，将总数
+  local sum_hu = 0
+  local sum_jiang = 0
+  for i = 1,5 do 
+    if pai_info[i][1] == true then
+      sum_hu    = sum_hu    + pai_info[i][1] 
+    end
+    sum_jiang = sum_jiang + pai_info[i][2] 
+  end
+
+  if sum == 5 then return false end
 
 end
 
@@ -561,7 +697,7 @@ local function CheckKe(userpai,i,n)
   -- 小于三张不可能刻
   if i > n then return true end
   if n - i < 2 then return false end
-  if CheckAAAPai(userpai[i],userpai[i+1],userpai[i+2]) and CheckKe(userpai,i+4,n) then
+  if CheckAAAPai(userpai[i],userpai[i+1],userpai[i+2]) and CheckKe(userpai,i+3,n) then
     return true
   else
     return false end
@@ -573,7 +709,7 @@ local function CheckShun(userpai,i,n)
   if i > n then return true end
   if n - i < 2 then return false end
 
-  if CheckABCPai(userpai[i],userpai[i+1],userpai[i+2]) and CheckShun(userpai,i+4,n) then
+  if CheckABCPai(userpai[i],userpai[i+1],userpai[i+2]) and CheckShun(userpai,i+3,n) then
     return true
   else
     return false end
@@ -581,6 +717,9 @@ end
 
 local function Deletejiang(userpai)
   -- 删除传进来的牌中的将牌
+  -- 仅用于删除 平胡或碰碰胡中的将牌 如 11 11 11 12 12 12 13 13 13 14 14 14 |(43 43)
+  -- 可能会删除 (11 11) 12 12 13 13 慎用 
+
   local count = 0
   local last_pai = 0
   for i = 1,#userpai do
@@ -604,8 +743,9 @@ local function Deletejiang(userpai)
     table.remove(userpai)
   end
 end
-local function CheckPH(userPai)
 
+local function CheckPH(userPai)
+  -- 平胡
   -- 拷贝数组
   local t_pai = {}
   for i = 1,#userPai do
@@ -616,11 +756,11 @@ local function CheckPH(userPai)
   Deletejiang(t_pai)
 
   -- 保证只有一组将牌被删除,多组则返回
-  if #t_pai ~= ( #userPai - 2 ) and (#t_pai ~= userPai) then return false end
+  if #t_pai ~= ( #userPai - 2 )  then return false end
 
 
   -- --检查剩下的牌是否只由顺子组成
-    local sort_pai = SortByType(t_pai)
+  local sort_pai = SortByType(t_pai)
   for i = 1,#sort_pai["My"] do
     if #sort_pai["My"][i] ~= 0 then
       if CheckShun(sort_pai["My"][i],1,#sort_pai["My"][i]) == false then return false end
@@ -644,7 +784,7 @@ local function CheckPPH(userPai)
   Deletejiang(t_pai)
 
   -- 保证只有一组将牌被删除,多组则返回
-  if #t_pai ~= ( #userPai - 2 ) and (#t_pai ~= userPai) then return false end
+  if #t_pai ~= ( #userPai - 2 ) then return false end
 
   local sort_pai = SortByType(t_pai)
 
@@ -739,7 +879,8 @@ local function CheckQYS(userPai)
   local paitype = CheckSinglePaiType(userPai[1])
   if paitype == MJ_WAN or paitype == MJ_TIAO or paitype == MJ_BING then
     for i = 2,#userPai do
-      if CheckSinglePaiType(userPai[i]) ~= paiType then
+      local t = CheckSinglePaiType(userPai[i])
+      if t ~= paitype then
         return false
       end
     end
@@ -818,7 +959,7 @@ local function CheckJLBD(userPai)
   end
 
   local JLBD_list = {
-   --{11,11,11,12,13,14,15,16,17,18,19,19,19},
+   {11,11,11,12,13,14,15,16,17,18,19,19,19},
    {11,11,11,11,12,13,14,15,16,17,18,19,19,19},{11,11,11,12,12,13,14,15,16,17,18,19,19,19},
    {11,11,11,12,13,13,14,15,16,17,18,19,19,19},{11,11,11,12,13,14,14,15,16,17,18,19,19,19},
    {11,11,11,12,13,14,15,15,16,17,18,19,19,19},{11,11,11,12,13,14,15,16,16,17,18,19,19,19},
@@ -890,7 +1031,7 @@ local function CheckDSX(userPai)
 
   for i=1,#userPai
   do
-    if CheckSinglePaiType(userPai[i]) == MJ_FENG 
+    if CheckSinglePaiType(userPai[i]) == MJ_FENG
       then
       --东
       if CheckSinglePaiNum(userPai[i]) == 1
@@ -930,12 +1071,17 @@ local function CheckSSY(userPai)
 
   local sort_pai = SortByType(userPai)
   -- 判断每组牌是否起码有2张
-  if #sort_pai["My"][MJ_WAN] < 2 or #sort_pai["My"][MJ_TIAO] < 2 or #sort_pai["My"][MJ_BING] < 2 then return false end
+  -- if #sort_pai["My"][MJ_WAN] < 2 or #sort_pai["My"][MJ_TIAO] < 2 or #sort_pai["My"][MJ_BING] < 2 then return false end
 
-  if CheckSinglePaiNum(sort_pai["My"][MJ_WAN][1])  ~= 1 or CheckSinglePaiNum(sort_pai["My"][MJ_WAN][2])   ~= 9 then return false end
-  if CheckSinglePaiNum(sort_pai["My"][MJ_TIAO][1]) ~= 1 or CheckSinglePaiNum(sort_pai["My"][MJ_TIAO][2]) ~= 9 then return false end
-  if CheckSinglePaiNum(sort_pai["My"][MJ_BING][1]) ~= 1 or CheckSinglePaiNum(sort_pai["My"][MJ_BING][2])  ~= 9 then return false end
-
+  -- if CheckSinglePaiNum(sort_pai["My"][MJ_WAN][1])  ~= 1 or CheckSinglePaiNum(sort_pai["My"][MJ_WAN][2])   ~= 9 then return false end
+  -- if CheckSinglePaiNum(sort_pai["My"][MJ_TIAO][1]) ~= 1 or CheckSinglePaiNum(sort_pai["My"][MJ_TIAO][2]) ~= 9 then return false end
+  -- if CheckSinglePaiNum(sort_pai["My"][MJ_BING][1]) ~= 1 or CheckSinglePaiNum(sort_pai["My"][MJ_BING][2])  ~= 9 then return false end
+  local wan1  = 0
+  local wan9  = 0
+  local tiao1 = 0
+  local tiao9 = 0
+  local bing1 = 0
+  local bing9 = 0
   local dong  = 0
   local nan   = 0
   local xi    = 0
@@ -943,6 +1089,29 @@ local function CheckSSY(userPai)
   local zhong = 0
   local fa    = 0
   local bai   = 0
+
+  -- 统计 1万、9万 个数
+  for i = 1,#sort_pai["My"][MJ_WAN] do
+    local pai = sort_pai["My"][MJ_WAN][i]
+    local num = CheckSinglePaiNum(pai)
+    if num == 1 then wan1 = wan1 + 1 end
+    if num == 9 then wan9 = wan9 + 1 end
+  end
+   -- 统计 1条、9条 个数
+  for i = 1,#sort_pai["My"][MJ_TIAO] do
+    local pai = sort_pai["My"][MJ_TIAO][i]
+    local num = CheckSinglePaiNum(pai)
+    if num == 1 then tiao1 = tiao1 + 1 end
+    if num == 9 then tiao9 = tiao9 + 1 end
+  end
+
+   -- 统计 1饼、9饼个数
+  for i = 1,#sort_pai["My"][MJ_BING] do
+    local pai = sort_pai["My"][MJ_BING][i]
+    local num = CheckSinglePaiNum(pai)
+    if num == 1 then bing1 = bing1 + 1 end
+    if num == 9 then bing9 = bing9 + 1 end
+  end
 
   -- 统计 ( 东南西北 )数目
   for i = 1,#sort_pai["My"][MJ_FENG] do
@@ -962,10 +1131,11 @@ local function CheckSSY(userPai)
     if num == 5 then bai   = bai   + 1 end
   end
 
-  -- 东南西北中发白，每种一个，其中一个为将牌
-  if dong and nan and xi and bei and zhong and fa and bai and (dong + nan + xi + bei + zhong + fa + bai  == 8) then
-    return true
-  else return false end
+  -- 所有牌起码一个并且总和为 14
+  local sum = wan1 + wan9 + tiao1 + tiao9 + bing1 + bing9 + dong + nan + xi + bei + zhong + fa + bai
+  if wan1 > 0 and wan9 > 0 and tiao1 > 0 and tiao9 > 0 and bing1 > 0 and bing9 > 0 and dong > 0 and nan > 0 and xi > 0 and bei > 0 and
+     zhong > 0 and fa  > 0 and bai > 0 and sum == 14 then return true end
+  return false
 
 end
 
@@ -1155,9 +1325,10 @@ local function CheckPaiXing(userpai)
   if CheckJLBD(userpai) == true then print("九莲宝灯") return true end
   if CheckDSX(userpai)  == true then print("大四喜") return true end
   if CheckDSY(userpai)  == true then print("大三元") return true end
+  if CheckXSY(userpai)  == true then print("小三元") return true end
   if CheckQYJ(userpai)  == true then print("清幺九") return true end
   if CheckZYS(userpai)  == true then print("字一色") return true end
-  if CheckXSX(userpai)  == true then print("小三元") return true end
+  if CheckXSX(userpai)  == true then print("小四喜") return true end
   if CheckHYJ(userpai)  == true then print("混幺九") return true end
   if CheckQP(userpai)   == true then print("清碰") return true end
   if CheckHP(userpai)   == true then print("混碰") return true end
@@ -1171,38 +1342,74 @@ end
 
 
 local list = {
+
+    -- 删除将牌测试
+    {11,11,22,22,33,33,33,34,35,51,51,51,55,55}
        -- （十三幺） 所有可能
  --{11,19,21,29,31,39,41,43,45,47,51,53,55},
- {11,19,21,29,31,39,41,41,43,45,47,51,53,55},
- {11,19,21,29,31,39,41,43,43,45,47,51,53,55},
- {11,19,21,29,31,39,41,43,45,45,47,51,53,55},
- {11,19,21,29,31,39,41,43,45,47,47,51,53,55},
- {11,19,21,29,31,39,41,43,45,47,51,51,53,55},
- {11,19,21,29,31,39,41,43,45,47,51,53,53,55},
- {11,19,21,29,31,39,41,43,45,47,51,53,55,55},
- -- 十三幺 失败
- {11,11,19,21,29,31,39,41,43,45,47,51,53,55},
- {11,19,19,21,29,31,39,41,43,45,47,51,53,55},
- {11,19,21,21,29,31,39,41,43,45,47,51,53,55},
- {11,19,21,29,29,31,39,41,43,45,47,51,53,55},
- {11,19,21,29,31,31,39,41,43,45,47,51,53,55},
- {11,19,21,29,31,39,39,41,43,45,47,51,53,55},
- -- （九莲宝灯） 所有可能
- --{11,11,11,12,13,14,15,16,17,18,19,19,19}
- {11,11,11,11,12,13,14,15,16,17,18,19,19,19},
- {11,11,11,12,12,13,14,15,16,17,18,19,19,19},
- {11,11,11,12,13,13,14,15,16,17,18,19,19,19},
- {11,11,11,12,13,14,14,15,16,17,18,19,19,19},
- {11,11,11,12,13,14,15,15,16,17,18,19,19,19},
- {11,11,11,12,13,14,15,16,16,17,18,19,19,19},
- {11,11,11,12,13,14,15,16,17,17,18,19,19,19},
- {11,11,11,12,13,14,15,16,17,18,18,19,19,19},
- {11,11,11,12,13,14,15,16,17,18,19,19,19,19},
- -- 大四喜
- {41,41,41,43,43,43,45,45,45,47,47,47,51,51},
- {41,41,41,43,43,43,45,45,45,47,47,47,11,11},
-
-
+ -- {11,19,21,29,31,39,41,41,43,45,47,51,53,55},
+ -- {11,19,21,29,31,39,41,43,43,45,47,51,53,55},
+ -- {11,19,21,29,31,39,41,43,45,45,47,51,53,55},
+ -- {11,19,21,29,31,39,41,43,45,47,47,51,53,55},
+ -- {11,19,21,29,31,39,41,43,45,47,51,51,53,55},
+ -- {11,19,21,29,31,39,41,43,45,47,51,53,53,55},
+ -- {11,19,21,29,31,39,41,43,45,47,51,53,55,55},
+ -- -- 十三幺 失败
+ -- {11,11,19,21,29,31,39,41,43,45,47,51,53,55},
+ -- {11,19,19,21,29,31,39,41,43,45,47,51,53,55},
+ -- {11,19,21,21,29,31,39,41,43,45,47,51,53,55},
+ -- {11,19,21,29,29,31,39,41,43,45,47,51,53,55},
+ -- {11,19,21,29,31,31,39,41,43,45,47,51,53,55},
+ -- {11,19,21,29,31,39,39,41,43,45,47,51,53,55},
+ -- -- （九莲宝灯） 所有可能
+ -- --{11,11,11,12,13,14,15,16,17,18,19,19,19}
+ -- {11,11,11,11,12,13,14,15,16,17,18,19,19,19},
+ -- {11,11,11,12,12,13,14,15,16,17,18,19,19,19},
+ -- {11,11,11,12,13,13,14,15,16,17,18,19,19,19},
+ -- {11,11,11,12,13,14,14,15,16,17,18,19,19,19},
+ -- {11,11,11,12,13,14,15,15,16,17,18,19,19,19},
+ -- {11,11,11,12,13,14,15,16,16,17,18,19,19,19},
+ -- {11,11,11,12,13,14,15,16,17,17,18,19,19,19},
+ -- {11,11,11,12,13,14,15,16,17,18,18,19,19,19},
+ -- {11,11,11,12,13,14,15,16,17,18,19,19,19,19},
+ -- -- 大四喜
+ -- {41,41,41,43,43,43,45,45,45,47,47,47,51,51},
+ -- {41,41,41,43,43,43,45,45,45,47,47,47,11,11},
+ -- -- 大三元
+ -- {51,51,51,53,53,53,55,55,55,11,11,11,12,12},
+ -- -- 清幺九
+ -- {11,11,11,19,19,19,21,21,21,29,29,29,31,31},
+ -- -- 字一色
+ -- {41,41,41,43,43,43,45,45,45,51,51,51,53,53},
+ -- {41,41,41,43,43,43,45,45,45,51,51,51,55,55},
+ -- -- 小四喜
+ -- {41,41,41,43,43,43,45,45,45,47,47,11,11,11},
+ -- {41,41,41,43,43,45,45,45,47,47,47,11,12,13},
+ -- {41,41,43,43,43,45,45,45,47,47,47,11,12,13},
+ -- -- 小三元
+ -- {51,51,51,53,53,53,55,55,11,11,11,12,12,12},
+ -- {51,51,53,53,53,55,55,55,41,41,41,43,43,43},
+ -- {51,51,51,53,53,55,55,55,22,23,24,25,25,27},
+ -- -- 混幺九
+ -- {11,11,11,19,19,19,21,21,21,29,29,29,51,51},
+ -- {11,11,11,19,19,19,21,21,21,29,29,29,53,53},
+ -- 清碰
+ -- {11,11,11,12,12,12,13,13,13,14,14,14,15,15},
+ -- {12,12,12,15,15,15,17,17,17,18,18,18,19,19},
+ -- 清一色
+--     {11,11,11,12,13,14,15,15,15,16,17,18,19,19},
+--     {11,11,11,11,12,13,14,15,16,17,17,17,18,18},
+-- --  混碰
+--     {11,11,11,12,12,12,13,13,13,14,14,14,51,51},
+--     {11,11,11,12,12,12,13,13,13,14,14,14,53,53},
+-- --  混一色
+--     {11,11,11,12,12,12,13,13,13,51,51,53,53,53},
+-- --  碰碰胡
+--     {11,11,11,21,21,21,34,34,34,41,41,41,53,53},
+-- --  平胡
+--     {11,12,13,21,22,23,31,32,33,17,18,19,51,51},
+-- --  鸡胡
+--     {11,12,13,21,22,23,33,33,33,41,41,41,51,51}
 }
 
 for i = 1,#list do

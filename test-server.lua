@@ -704,11 +704,11 @@ local function CheckTingPai(userPai)
 
   -- ********** 五组都“胡”，没法听 *****************
 
-  if sum == 5 then return false,0,0 end
+  if sum_hu == 5 then return false,0,0 end
 
   -- ********** 四组“胡”且将 == 0 或 1 **************
 
-  if sum == 4 and sum_jiang < 2 then
+  if sum_hu == 4 and sum_jiang < 2 then
     -- 剩下的一组所需要的将 为 1 或 0
     local jiang_need = 1 - sum_jiang
     -- 找出是哪一组没法“胡”
@@ -718,21 +718,21 @@ local function CheckTingPai(userPai)
   end
     -- 从该组第一张牌开始替换
     for i = 1,#sort_pai["My"][target] do
-      local t = sort_pai["My"][target][i]
+      local t_pai = sort_pai["My"][target][i]
       for j = 1,#collection[target] do
         sort_pai["My"][target][i] = collection[target][j]
         local t = false
         local k = 0
         t,k = ValidHu(sort_pai["My"][target],1,#sort_pai["My"][target])
         -- 胡 且 达到所需将牌数目
-        if t == true and k == jiang_need then return true,t,collection[target][j] end
+        if t == true and k == jiang_need then return true,t_pai,collection[target][j] end
       end
-      sort_pai["My"][target][i] = t
+      sort_pai["My"][target][i] = t_pai
     end
   end
 
   -- ********** 三组“胡” 且将 == 0 或 1 ************
-    if sum == 3 and sum_jiang < 2 then
+    if sum_hu == 3 and sum_jiang < 2 then
       -- 找出是哪两组没法“胡”
       local target1 = 0
       local traget2 = 0

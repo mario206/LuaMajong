@@ -85,7 +85,13 @@ local function SortByType(userpai)
 
   return sort_pai
 end
-
+local function CopyPai(userPai)
+  local t_pai = {}
+  for i = 1,#userPai do
+    table.insert(t_pai,userPai[i])
+  end
+  return t_pai
+end
 
 
 --检测一对
@@ -661,10 +667,10 @@ function CheckGangPai(userPai,prePai,isNotZiMo)
 end
 
 
-function CheckTingPai(userPai,attribute)
+local function CheckTingPai(userPai)
   -- 分组
   sort_pai = SortByType(userPai)
-  -- 
+  --
   -- 检查听牌
   local pai_info = {
   [MJ_WAN]  = {false,0},
@@ -681,15 +687,116 @@ function CheckTingPai(userPai,attribute)
   -- 统计 胡，将总数
   local sum_hu = 0
   local sum_jiang = 0
-  for i = 1,5 do 
+  for i = 1,5 do
     if pai_info[i][1] == true then
-      sum_hu    = sum_hu    + pai_info[i][1] 
+      sum_hu    = sum_hu    + pai_info[i][1]
     end
-    sum_jiang = sum_jiang + pai_info[i][2] 
+    sum_jiang = sum_jiang + pai_info[i][2]
   end
 
-  if sum == 5 then return false end
+  local collection = {
+  [MJ_WAN]  = {11,12,13,14,15,16,17,18,19},
+  [MJ_TIAO] = {21,22,23,24,25,26,27,28,29},
+  [MJ_BING] = {31,32,33,34,35,36,37,38,39},
+  [MJ_FENG] = {41,43,45,47},
+  [MJ_ZFB]  = {51,53,55}
+}
 
+  -- ********** 五组都“胡”，没法听 *****************
+
+  if sum == 5 then return false,0,0 end
+
+  -- ********** 四组“胡”且将 == 0 或 1 **************
+
+  if sum == 4 and sum_jiang < 2 then
+    -- 剩下的一组所需要的将 为 1 或 0
+    local jiang_need = 1 - sum_jiang
+    -- 找出是哪一组没法“胡”
+    local target = 0
+    for i = 1,#pai_info do
+      if pai_info[i][1] == false then target = i end
+  end
+    -- 从该组第一张牌开始替换
+    for i = 1,#sort_pai["My"][target] do
+      local t = sort_pai["My"][target][i]
+      for j = 1,#collection[target] do
+        sort_pai["My"][target][i] = collection[target][j]
+        local t = false
+        local k = 0
+        t,k = ValidHu(sort_pai["My"][target],1,#sort_pai["My"][target])
+        -- 胡 且 达到所需将牌数目
+        if t == true and k == jiang_need then return true,t,collection[target][j] end
+      end
+      sort_pai["My"][target][i] = t
+    end
+  end
+
+  -- ********** 三组“胡” 且将 == 0 或 1 ************
+    if sum == 3 and sum_jiang < 2 then
+      -- 找出是哪两组没法“胡”
+      local target1 = 0
+      local traget2 = 0
+      for i = 1,#pai_info do
+        if pai_info[i][1] == false then
+          if target1 == 0 then target1 = i
+            else target2 = i
+          end
+        end
+      end
+      -- 剩下的两组所需要的将 为 1 或 0
+      local jiang_need = 1 - sum_jiang
+      -- 删掉第一组中的牌，往第二组加一张牌
+      for i = 1,#sort_pai["My"][target1] do
+        -- 记录下第一组牌中被删除的牌
+        local t_pai = sort_pai["My"][target1][i]
+        table.remove(sort_pai["My"][target1],i)
+        local t1 = false
+        local k1 = 0
+        t1,k1 = ValidHu(sort_pai["My"][target1],1,#sort_pai["My"][target1])
+        if t1 == true then
+          for i = 1,#sort_pai["My"][target2] do
+            for j = 1,#collection[target2] do
+              local t_pai2 = CopyPai(sort_pai["My"][target2])
+              table.insert(t_pai2,collection[target2][j])
+              table.sort(t_pai2)
+              local t2 = false
+              local k2 = 0
+              t2,k2 = ValidHu(t_pai2,1,#t_pai2)
+              if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target2][j] end
+            end
+          end
+        end
+        -- 还原第一组牌
+        table.insert(sort_pai["My"][target1][i],t_pai)
+      end
+      -- 交换下位置
+      -- 删掉第二组中的牌，往第一组加一张牌
+      for i = 1,#sort_pai["My"][target2] do
+        -- 记录下第一组牌中被删除的牌
+        local t_pai = sort_pai["My"][target2][i]
+        table.remove(sort_pai["My"][target2],i)
+        local t1 = false
+        local k1 = 0
+        t1,k1 = ValidHu(sort_pai["My"][target2],1,#sort_pai["My"][target2])
+        if t1 == true then
+          for i = 1,#sort_pai["My"][target1] do
+            for j = 1,#collection[target1] do
+              local t_pai2 = CopyPai(sort_pai["My"][target1])
+              table.insert(t_pai2,collection[target1][j])
+              table.sort(t_pai2)
+              local t2 = false
+              local k2 = 0
+              t2,k2 = ValidHu(t_pai2,1,#t_pai2)
+              if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target1][j] end
+            end
+          end
+        end
+        -- 还原第一组牌
+        table.insert(sort_pai["My"][target2][i],t_pai)
+      end
+
+  return false,0,0
+  end
 end
 
 local function CheckKe(userpai,i,n)
@@ -718,7 +825,7 @@ end
 local function Deletejiang(userpai)
   -- 删除传进来的牌中的将牌
   -- 仅用于删除 平胡或碰碰胡中的将牌 如 11 11 11 12 12 12 13 13 13 14 14 14 |(43 43)
-  -- 可能会删除 (11 11) 12 12 13 13 慎用 
+  -- 可能会删除 (11 11) 12 12 13 13 慎用
 
   local count = 0
   local last_pai = 0
@@ -1412,9 +1519,9 @@ local list = {
 --     {11,12,13,21,22,23,33,33,33,41,41,41,51,51}
 }
 
-for i = 1,#list do
-  CheckPaiXing(list[i])
-end
+-- for i = 1,#list do
+--   CheckPaiXing(list[i])
+-- end
 
 -- --------------以下函数作测试用------------
 -- temp = {0051,0051,0051,0053,0053,0053,0055,0055,0055,0045,0045,0045,0024}
@@ -1478,3 +1585,15 @@ end
 -- else
 --  print("no hu")
 -- end
+
+local ting_pai = {
+  {11,12,13,21,23,31,31,31,41,41,41,43,43,43}, -- true,21,23
+}
+
+for i = 1,#ting_pai do
+  local t = false
+  local pai1 = 0
+  local pai2 = 0
+  t,pai1,pai2 = CheckTingPai(ting_pai)
+  if k == true then print(pai1) print(pai2) end
+end

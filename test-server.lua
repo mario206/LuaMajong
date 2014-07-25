@@ -767,7 +767,7 @@ local function CheckTingPai(userPai)
           end
         end
         -- 还原第一组牌
-        table.insert(sort_pai["My"][target1][i],t_pai)
+        table.insert(sort_pai["My"][target1],i,t_pai)
       end
       -- 交换下位置
       -- 删掉第二组中的牌，往第一组加一张牌
@@ -792,7 +792,7 @@ local function CheckTingPai(userPai)
           end
         end
         -- 还原第一组牌
-        table.insert(sort_pai["My"][target2][i],t_pai)
+        table.insert(sort_pai["My"][target2],i,t_pai)
       end
 
   return false,0,0
@@ -1588,6 +1588,7 @@ local list = {
 
 local ting_pai = {
   {11,12,13,21,23,31,31,31,41,41,41,43,43,43}, -- true,21,23
+  {11,12,13,21,23,31,31,31,41,41,41,43,43,45}
 }
 
 for i = 1,#ting_pai do
@@ -1595,5 +1596,5 @@ for i = 1,#ting_pai do
   local pai1 = 0
   local pai2 = 0
   t,pai1,pai2 = CheckTingPai(ting_pai[i])
-  if t == true then io.write("丢",pai1,",") io.write("听",pai2) io.write('\n') end
+  if t == true then PrintPai(ting_pai[i]) io.write("丢",pai1,",") io.write("听",pai2) io.write('\n') end
 end

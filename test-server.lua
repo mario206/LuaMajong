@@ -1620,14 +1620,6 @@ local ting_pai = {
   {11,12,21,21,21,23,23,23,41,41,41,43,43,43},--
 }
 
--- for i = 1,#ting_pai do
---   local t = false
---   local pai1 = 0
---   local pai2 = 0
---   t,pai1,pai2 = CheckTingPai(ting_pai[i])
---   if t == true then PrintPai(ting_pai[i]) io.write("丢",pai1,",") io.write("听",pai2) io.write('\n')
---     else PrintPai(ting_pai[i]) print("听你妹") end
--- end
 for i = 1,#ting_pai do
   local t = false
   local t_list
@@ -1636,9 +1628,9 @@ for i = 1,#ting_pai do
   if k == false then print("听你妹")
   else
     for i = 1,#t_list do
-      for k = 1,#t_list[i] do
-        io.write(t_list[i][k],",")
-      end
+      io.write("丢: ",t_list[i][1])
+      io.write("   ")
+      io.write("听: ",t_list[i][2])
       io.write("  ")
     end
   io.write("\n")

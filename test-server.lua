@@ -754,15 +754,15 @@ local function CheckTingPai(userPai)
         local k1 = 0
         t1,k1 = ValidHu(sort_pai["My"][target1],1,#sort_pai["My"][target1])
         if t1 == true then
-          for i = 1,#sort_pai["My"][target2] do
-            for j = 1,#collection[target2] do
+          for j = 1,#sort_pai["My"][target2] do
+            for k = 1,#collection[target2] do
               local t_pai2 = CopyPai(sort_pai["My"][target2])
-              table.insert(t_pai2,collection[target2][j])
+              table.insert(t_pai2,collection[target2][k])
               table.sort(t_pai2)
               local t2 = false
               local k2 = 0
               t2,k2 = ValidHu(t_pai2,1,#t_pai2)
-              if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target2][j] end
+              if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target2][k] end
             end
           end
         end
@@ -779,15 +779,15 @@ local function CheckTingPai(userPai)
         local k1 = 0
         t1,k1 = ValidHu(sort_pai["My"][target2],1,#sort_pai["My"][target2])
         if t1 == true then
-          for i = 1,#sort_pai["My"][target1] do
-            for j = 1,#collection[target1] do
+          for j = 1,#sort_pai["My"][target1] do
+            for k = 1,#collection[target1] do
               local t_pai2 = CopyPai(sort_pai["My"][target1])
-              table.insert(t_pai2,collection[target1][j])
+              table.insert(t_pai2,collection[target1][k])
               table.sort(t_pai2)
               local t2 = false
               local k2 = 0
               t2,k2 = ValidHu(t_pai2,1,#t_pai2)
-              if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target1][j] end
+              if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target1][k] end
             end
           end
         end
@@ -1408,9 +1408,14 @@ local function CheckHu(userPai,zimoPai)
 end
 
 local function PrintPai(userpai)
-  for i = 1,#userpai do
-    io.write(userpai[i],",")
+  local sort_pai = SortByType(userpai)
+  for i = 1,#sort_pai["My"] do
+    for j = 1,#sort_pai["My"][i] do
+     io.write(sort_pai["My"][i][j],",")
+   end
+    io.write("   ")
   end
+
 end
 local function CheckHu_p(userPai)
 
@@ -1588,7 +1593,12 @@ local list = {
 
 local ting_pai = {
   {11,12,13,21,23,31,31,31,41,41,41,43,43,43}, -- true,21,23
-  {11,12,13,21,23,31,31,31,41,41,41,43,43,45}
+  {11,12,13,21,23,31,31,31,41,41,41,43,43,45},
+  {11,12,13,21,23,31,31,31,41,41,42,43,43,45},
+  {11,12,13,21,23,31,31,31,41,41,41,43,43,45},
+
+  {11,12,12,21,21,21,23,23,23,41,41,41,43,43},-- 11 12
+  {11,12,21,21,21,23,23,23,41,41,41,43,43,43},-- 
 }
 
 for i = 1,#ting_pai do
@@ -1596,5 +1606,6 @@ for i = 1,#ting_pai do
   local pai1 = 0
   local pai2 = 0
   t,pai1,pai2 = CheckTingPai(ting_pai[i])
-  if t == true then PrintPai(ting_pai[i]) io.write("丢",pai1,",") io.write("听",pai2) io.write('\n') end
+  if t == true then PrintPai(ting_pai[i]) io.write("丢",pai1,",") io.write("听",pai2) io.write('\n')
+    else PrintPai(ting_pai[i]) print("听你妹") end
 end

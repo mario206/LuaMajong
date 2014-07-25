@@ -689,7 +689,7 @@ local function CheckTingPai(userPai)
   local sum_jiang = 0
   for i = 1,5 do
     if pai_info[i][1] == true then
-      sum_hu    = sum_hu    + pai_info[i][1]
+      sum_hu    = sum_hu    + 1
     end
     sum_jiang = sum_jiang + pai_info[i][2]
   end

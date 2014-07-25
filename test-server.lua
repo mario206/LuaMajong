@@ -1595,5 +1595,5 @@ for i = 1,#ting_pai do
   local pai1 = 0
   local pai2 = 0
   t,pai1,pai2 = CheckTingPai(ting_pai[i])
-  if k == true then print(pai1) print(pai2) end
+  if t == true then io.write("丢",pai1,",") io.write("听",pai2) io.write('\n') end
 end

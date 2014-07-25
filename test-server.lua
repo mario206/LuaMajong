@@ -723,6 +723,7 @@ local function CheckTingPai(userPai)
     for i = 1,#sort_pai["My"][target] do
       local t_pai = sort_pai["My"][target][i]
       for j = 1,#collection[target] do
+        local save_pai = sort_pai["My"][target][i]
         sort_pai["My"][target][i] = collection[target][j]
         local t = false
         local k = 0
@@ -731,10 +732,11 @@ local function CheckTingPai(userPai)
         -- if t == true and k == jiang_need then return true,t_pai,collection[target][j] end
         if t == true and k == jiang_need then
           found_ting = true
-          -- 注意本轮被替换的数实际是collection[target][j-1]
-          local t_list = {collection[target][j-1],collection[target][j]}
+          -- 注意本轮被替换的数实际是
+          local t_list = {save_pai,collection[target][j]}
           table.insert(ting_list,t_list)
         end
+        sort_pai["My"][target][i] = save_pai
       end
       sort_pai["My"][target][i] = t_pai
     end
@@ -744,7 +746,7 @@ local function CheckTingPai(userPai)
     if sum_hu == 3 and sum_jiang < 2 then
       -- 找出是哪两组没法“胡”
       local target1 = 0
-      local traget2 = 0
+      local target2 = 0
       for i = 1,#pai_info do
         if pai_info[i][1] == false then
           if target1 == 0 then target1 = i
@@ -762,21 +764,20 @@ local function CheckTingPai(userPai)
         local t1 = false
         local k1 = 0
         t1,k1 = ValidHu(sort_pai["My"][target1],1,#sort_pai["My"][target1])
+        -- 删掉第一组牌能胡，给第二组牌添加一张牌，测试 胡 和将
         if t1 == true then
-          for j = 1,#sort_pai["My"][target2] do
-            for k = 1,#collection[target2] do
-              local t_pai2 = CopyPai(sort_pai["My"][target2])
-              table.insert(t_pai2,collection[target2][k])
-              table.sort(t_pai2)
-              local t2 = false
-              local k2 = 0
-              t2,k2 = ValidHu(t_pai2,1,#t_pai2)
-              -- if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target2][k] end
-              if t2 == true and k2 + k1 == jiang_need then
-                found_ting = true
-                local t_list = {t_pai,collection[target2][k]}
-                table.insert(ting_list,t_list)
-              end
+          for k = 1,#collection[target2] do
+            local t_pai2 = CopyPai(sort_pai["My"][target2])
+            table.insert(t_pai2,collection[target2][k])
+            table.sort(t_pai2)
+            local t2 = false
+            local k2 = 0
+            t2,k2 = ValidHu(t_pai2,1,#t_pai2)
+            -- if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target2][k] end
+            if t2 == true and k2 + k1 == jiang_need then
+              found_ting = true
+              local t_list = {t_pai,collection[target2][k]}
+              table.insert(ting_list,t_list)
             end
           end
         end
@@ -786,31 +787,31 @@ local function CheckTingPai(userPai)
       -- 交换下位置
       -- 删掉第二组中的牌，往第一组加一张牌
       for i = 1,#sort_pai["My"][target2] do
-        -- 记录下第一组牌中被删除的牌
+        -- 记录下第二组牌中被删除的牌
         local t_pai = sort_pai["My"][target2][i]
         table.remove(sort_pai["My"][target2],i)
         local t1 = false
         local k1 = 0
         t1,k1 = ValidHu(sort_pai["My"][target2],1,#sort_pai["My"][target2])
+        -- 第二组牌能胡，往第一组牌中加入牌，测试 胡、将
         if t1 == true then
-          for j = 1,#sort_pai["My"][target1] do
-            for k = 1,#collection[target1] do
-              local t_pai2 = CopyPai(sort_pai["My"][target1])
-              table.insert(t_pai2,collection[target1][k])
-              table.sort(t_pai2)
-              local t2 = false
-              local k2 = 0
-              t2,k2 = ValidHu(t_pai2,1,#t_pai2)
-              -- if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target1][k] end
-              if t2 == true and k2 + k1 == jiang_need then
-                found_ting = true
-                local t_list = {t_pai,collection[target1][k]}
-                table.insert(ting_list,t_list)
-              end
+        -- 往第一组牌加入一张牌
+          for k = 1,#collection[target1] do
+            local t_pai2 = CopyPai(sort_pai["My"][target1])
+            table.insert(t_pai2,collection[target1][k])
+            table.sort(t_pai2)
+            local t2 = false
+            local k2 = 0
+            t2,k2 = ValidHu(t_pai2,1,#t_pai2)
+            -- if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target1][k] end
+            if t2 == true and k2 + k1 == jiang_need then
+              found_ting = true
+              local t_list = {t_pai,collection[target1][k]}
+              table.insert(ting_list,t_list)
             end
           end
         end
-        -- 还原第一组牌
+        -- 还原第二组牌
         table.insert(sort_pai["My"][target2],i,t_pai)
       end
   end
@@ -1610,13 +1611,13 @@ local list = {
 -- end
 
 local ting_pai = {
-  -- {11,12,13,21,23,31,31,31,41,41,41,43,43,43}, -- true,21,23
-  -- {11,12,13,21,23,31,31,31,41,41,41,43,43,45},
-  -- {11,12,13,21,23,31,31,31,41,41,42,43,43,45},
-  -- {11,12,13,21,23,31,31,31,41,41,41,43,43,45},
+      {11,12,13,21,23,31,31,31,41,41,41,43,43,43}, -- true,21,23
+  {11,12,13,21,23,31,31,31,41,41,41,43,43,45},
+  {11,12,13,21,23,31,31,31,41,41,42,43,43,45},
+   {11,12,13,21,23,31,31,31,41,41,41,43,43,45},
 
-  {11,12,12,21,21,21,23,23,23,41,41,41,43,43},-- 11 12
-  -- {11,12,21,21,21,23,23,23,41,41,41,43,43,43},--
+   {11,12,12,21,21,21,23,23,23,41,41,41,43,43},-- 11 12
+  {11,12,21,21,21,23,23,23,41,41,41,43,43,43},--
 }
 
 -- for i = 1,#ting_pai do
@@ -1629,6 +1630,7 @@ local ting_pai = {
 -- end
 for i = 1,#ting_pai do
   local t = false
+  local t_list
   PrintPai(ting_pai[i])
   k,t_list = CheckTingPai(ting_pai[i])
   if k == false then print("听你妹")

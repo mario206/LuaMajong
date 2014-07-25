@@ -669,7 +669,7 @@ end
 
 local function CheckTingPai(userPai)
   -- 分组
-  sort_pai = SortByType(userPai)
+  local sort_pai = SortByType(userPai)
   --
   -- 检查听牌
   local pai_info = {

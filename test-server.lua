@@ -668,6 +668,9 @@ end
 
 
 local function CheckTingPai(userPai)
+
+  local ting_list = {}
+  local found_ting = false
   -- 分组
   local sort_pai = SortByType(userPai)
   --
@@ -725,7 +728,13 @@ local function CheckTingPai(userPai)
         local k = 0
         t,k = ValidHu(sort_pai["My"][target],1,#sort_pai["My"][target])
         -- 胡 且 达到所需将牌数目
-        if t == true and k == jiang_need then return true,t_pai,collection[target][j] end
+        -- if t == true and k == jiang_need then return true,t_pai,collection[target][j] end
+        if t == true and k == jiang_need then
+          found_ting = true
+          -- 注意本轮被替换的数实际是collection[target][j-1]
+          local t_list = {collection[target][j-1],collection[target][j]}
+          table.insert(ting_list,t_list)
+        end
       end
       sort_pai["My"][target][i] = t_pai
     end
@@ -762,7 +771,12 @@ local function CheckTingPai(userPai)
               local t2 = false
               local k2 = 0
               t2,k2 = ValidHu(t_pai2,1,#t_pai2)
-              if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target2][k] end
+              -- if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target2][k] end
+              if t2 == true and k2 + k1 == jiang_need then
+                found_ting = true
+                local t_list = {t_pai,collection[target2][k]}
+                table.insert(ting_list,t_list)
+              end
             end
           end
         end
@@ -787,16 +801,20 @@ local function CheckTingPai(userPai)
               local t2 = false
               local k2 = 0
               t2,k2 = ValidHu(t_pai2,1,#t_pai2)
-              if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target1][k] end
+              -- if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target1][k] end
+              if t2 == true and k2 + k1 == jiang_need then
+                found_ting = true
+                local t_list = {t_pai,collection[target1][k]}
+                table.insert(ting_list,t_list)
+              end
             end
           end
         end
         -- 还原第一组牌
         table.insert(sort_pai["My"][target2],i,t_pai)
       end
-
-  return false,0,0
   end
+  return found_ting,ting_list
 end
 
 local function CheckKe(userpai,i,n)
@@ -1592,20 +1610,35 @@ local list = {
 -- end
 
 local ting_pai = {
-  {11,12,13,21,23,31,31,31,41,41,41,43,43,43}, -- true,21,23
-  {11,12,13,21,23,31,31,31,41,41,41,43,43,45},
-  {11,12,13,21,23,31,31,31,41,41,42,43,43,45},
-  {11,12,13,21,23,31,31,31,41,41,41,43,43,45},
+  -- {11,12,13,21,23,31,31,31,41,41,41,43,43,43}, -- true,21,23
+  -- {11,12,13,21,23,31,31,31,41,41,41,43,43,45},
+  -- {11,12,13,21,23,31,31,31,41,41,42,43,43,45},
+  -- {11,12,13,21,23,31,31,31,41,41,41,43,43,45},
 
   {11,12,12,21,21,21,23,23,23,41,41,41,43,43},-- 11 12
-  {11,12,21,21,21,23,23,23,41,41,41,43,43,43},-- 
+  -- {11,12,21,21,21,23,23,23,41,41,41,43,43,43},--
 }
 
+-- for i = 1,#ting_pai do
+--   local t = false
+--   local pai1 = 0
+--   local pai2 = 0
+--   t,pai1,pai2 = CheckTingPai(ting_pai[i])
+--   if t == true then PrintPai(ting_pai[i]) io.write("丢",pai1,",") io.write("听",pai2) io.write('\n')
+--     else PrintPai(ting_pai[i]) print("听你妹") end
+-- end
 for i = 1,#ting_pai do
   local t = false
-  local pai1 = 0
-  local pai2 = 0
-  t,pai1,pai2 = CheckTingPai(ting_pai[i])
-  if t == true then PrintPai(ting_pai[i]) io.write("丢",pai1,",") io.write("听",pai2) io.write('\n')
-    else PrintPai(ting_pai[i]) print("听你妹") end
+  PrintPai(ting_pai[i])
+  k,t_list = CheckTingPai(ting_pai[i])
+  if k == false then print("听你妹")
+  else
+    for i = 1,#t_list do
+      for k = 1,#t_list[i] do
+        io.write(t_list[i][k],",")
+      end
+      io.write("  ")
+    end
+  io.write("\n")
+  end
 end

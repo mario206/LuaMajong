@@ -1356,7 +1356,8 @@ local function CheckHu(userPai)
   -- 对各分组求"胡
   for i = 1,#sort_pai["My"] do
     t,k = ValidHu(sort_pai["My"][i],1,#sort_pai["My"][i])
-    if t == true then count_hu    = count_hu + 1 end
+    if t == true then count_hu    = count_hu + 1 
+      else break end
     if k == 1    then count_jiang = count_jiang + 1 end
   end
 

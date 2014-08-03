@@ -59,41 +59,6 @@ local function GetPaiTypeNum(pai)
   return math.floor(pai%100)
 end
 
-local function SortByType(userpai)
-
-  -- 将用户的手牌分成 万，条，饼，风，中发白四组并排序返回
-  local sort_pai = {
-            ["My"]={
-                [MJ_WAN] = {},
-                [MJ_TIAO] = {},
-                [MJ_BING] = {},
-                [MJ_FENG] = {},
-                [MJ_ZFB] = {}
-                }
-          }
-  for i = 1,#userpai,1 do
-    if CheckSinglePaiGroup(userpai[i]) == Pai_My then
-
-      type = CheckSinglePaiType(userpai[i])
-      table.insert(sort_pai["My"][type],userpai[i])
-    end
-  end
-
-  for i = 1,5,1 do
-    table.sort(sort_pai["My"][i])
-  end
-
-  return sort_pai
-end
-local function CopyPai(userPai)
-  local t_pai = {}
-  for i = 1,#userPai do
-    table.insert(t_pai,userPai[i])
-  end
-  return t_pai
-end
-
-
 --检测一对
 local function CheckAAPai(iValue1,iValue2)
     if iValue1 == iValue2 then return true
@@ -163,143 +128,40 @@ local function CheckAAAABBBBCCCCPai(iValue1,iValue2,iValue3,iValue4,iValue5,iVal
     end
 end
 
+local function SortByType(userpai)
 
---检测3张（三连对三重张）
-local function Check3Pai(iValue1,iValue2,iValue3)
-    if CheckAAAPai(iValue1,iValue2,iValue3) then return true end
-    if CheckABCPai(iValue1,iValue2,iValue3) then return true end
-    return false
-end
+  -- 将用户的手牌分成 万，条，饼，风，中发白四组并排序返回
+  local sort_pai = {
+            ["My"]={
+                [MJ_WAN] = {},
+                [MJ_TIAO] = {},
+                [MJ_BING] = {},
+                [MJ_FENG] = {},
+                [MJ_ZFB] = {}
+                }
+          }
+  for i = 1,#userpai,1 do
+    if CheckSinglePaiGroup(userpai[i]) == Pai_My then
 
---检测5张
-local function Check5Pai(iValue1,iValue2,iValue3,iValue4,iValue5)
-    --2+3
-    if CheckAAPai(iValue1,iValue2) and Check3Pai(iValue3,iValue4,iValue5) then return true end
-    --ABBBC
-    if CheckAAAPai(iValue2,iValue3,iValue4) and CheckABCPai(iValue1,iValue4,iValue5) then return true end
-    --3+2
-    if CheckAAPai(iValue4,iValue5) and Check3Pai(iValue1,iValue2,iValue3) then return true end
-    return false
-end
-
---检测6张
-local function Check6Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6)
-    --3+3
-    if Check3Pai(iValue1,iValue2,iValue3) and Check3Pai(iValue4,iValue5,iValue6) then return true end
-    --AABBCC
-    if CheckAABBCCPai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6) then return true end
-    --ABBBBC
-    if CheckAAAAPai(iValue2,iValue3,iValue4,iValue5) and CheckABCPai(iValue1,iValue2,iValue6) then return true end
-    return false
-end
-
---检测8张
-local function Check8Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8)
-  --2+3+3
-  if CheckAAPai(iValue1,iValue2) and Check6Pai(iValue3,iValue4,iValue5,iValue6,iValue7,iValue8)
-  then return true
-  end
-  --3+2+3
-  if CheckAAPai(iValue4,iValue5) and Check3Pai(iValue1,iValue2,iValue3) and Check3Pai(iValue6,iValue7,iValue8)
-  then return true
-  end
-  --3+3+2
-  if CheckAAPai(iValue7,iValue8) and Check6Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6)
-  then return true
-  end
-  return false
-end
-
---检测9张
-local function Check9Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9)
-  --3+6
-  if Check3Pai(iValue1,iValue2,iValue3) and Check6Pai(iValue4,iValue5,iValue6,iValue7,iValue8,iValue9)
-  then return true
-  end
-  --6+3
-  if Check3Pai(iValue7,iValue8,iValue9) and Check6Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6)
-  then return true
-  end
-  return false
-end
-
---检测11张
-local function Check11Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,iValue10,iValue11)
-  --2+9
-  if CheckAAPai(iValue1,iValue2) and Check9Pai(iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,iValue10,iValue11)
-  then return true
-  end
-  --3+2+6
-  if CheckAAPai(iValue4,iValue5) and Check3Pai(iValue1,iValue2,iValue3) and Check6Pai(iValue6,iValue7,iValue8,iValue9,iValue10,iValue11)
-  then return true
-  end
-  --6+2+3
-  if CheckAAPai(iValue7,iValue8) and Check6Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6) and Check3Pai(iValue9,iValue10,iValue11)
-  then return true
-  end
-  --9+2
-  if CheckAAPai(iValue10,iValue11) and Check9Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9)
-  then return true
-  end
-  return false
-end
-
---检测12张
-local function Check12Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,iValue10,iValue11,iValue12)
-  --3+9
-  if Check3Pai(iValue1,iValue2,iValue3) and Check9Pai(iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,iValue10,iValue11,iValue12)
-  then return true
-  end
-  --9+3
-  if Check3Pai(iValue10,iValue11,iValue12) and Check9Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9)
-  then return true
-  end
-  --6+6
-  if Check6Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6) and Check6Pai(iValue7,iValue8,iValue9,iValue10,iValue11,iValue12)
-  then return true
-  end
-  return false
-end
-
---检测14张
-local function Check14Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,iValue10,iValue11,iValue12,iValue13,iValue14)
-  --2+12
-  if CheckAAPai(iValue1,iValue2)
-  then
-    if Check12Pai(iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,iValue10,iValue11,iValue12,iValue13,iValue14)
-    then return true
+      type = CheckSinglePaiType(userpai[i])
+      table.insert(sort_pai["My"][type],userpai[i])
     end
   end
-  --3+2+9
-  if CheckAAPai(iValue4,iValue5)
-  then
-    if Check3Pai(iValue1,iValue2,iValue3) and Check9Pai(iValue6,iValue7,iValue8,iValue9,iValue10,iValue11,iValue12,iValue13,iValue14)
-    then return true
-    end
+
+  for i = 1,5,1 do
+    table.sort(sort_pai["My"][i])
   end
-  --6+2+6
-  if CheckAAPai(iValue7,iValue8)
-  then
-    if Check6Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6) and Check6Pai(iValue9,iValue10,iValue11,iValue12,iValue13,iValue14)
-    then return true
-    end
-  end
-  --9+2+3
-  if CheckAAPai(iValue10,iValue11)
-  then
-    if Check9Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9) and Check3Pai(iValue12,iValue13,iValue14)
-    then return true
-    end
-  end
-  --12+2
-  if CheckAAPai(iValue13,iValue14)
-  then
-    if Check12Pai(iValue1,iValue2,iValue3,iValue4,iValue5,iValue6,iValue7,iValue8,iValue9,iValue10,iValue11,iValue12)
-    then return true
-    end
-  end
-  return false
+
+  return sort_pai
 end
+local function CopyPai(userPai)
+  local t_pai = {}
+  for i = 1,#userPai do
+    table.insert(t_pai,userPai[i])
+  end
+  return t_pai
+end
+
 local function ValidAA(pai,i,n)
   if i + 1 <= n and pai[i] == pai[i+1]  then
     return true
@@ -411,12 +273,6 @@ local function ValidHu(pai,i,n)
   end
   return false,0
 end
-
-
-
-
-
-
 
 function CheckChiPai(userPai,prePai)
   --吃牌，用上家牌与自身牌遍历对比
@@ -669,6 +525,7 @@ end
 
 local function CheckTingPai(userPai)
 
+
   local ting_list = {}
   local found_ting = false
   -- 分组
@@ -680,8 +537,7 @@ local function CheckTingPai(userPai)
   [MJ_TIAO] = {false,0},
   [MJ_BING] = {false,0},
   [MJ_FENG] = {false,0},
-  [MJ_ZFB]  = {false,0}
-}
+  [MJ_ZFB]  = {false,0}}
   -- 统计各分组胡牌及将牌情况
   for i = 1,#sort_pai["My"] do
     pai_info[i][1],pai_info[i][2] = ValidHu(sort_pai["My"][i],1,#sort_pai["My"][i])
@@ -702,23 +558,196 @@ local function CheckTingPai(userPai)
   [MJ_TIAO] = {21,22,23,24,25,26,27,28,29},
   [MJ_BING] = {31,32,33,34,35,36,37,38,39},
   [MJ_FENG] = {41,43,45,47},
-  [MJ_ZFB]  = {51,53,55}
-}
+  [MJ_ZFB]  = {51,53,55}}
 
-  -- ********** 五组都“胡”，没法听 *****************
 
-  if sum_hu == 5 then return false,0,0 end
+  -- ********** 五组都“胡”，没法听 ****************************************************
 
-  -- ********** 四组“胡”且将 == 0 或 1 **************
+  --************************************ 检查是否听 九莲宝灯 **********************************************************
 
-  if sum_hu == 4 and sum_jiang < 2 then
+
+  if sum_hu >= 3 and found_ting == false then
+    -- 统计万条饼数目
+    local num_count = {[MJ_WAN] = 0,[MJ_TIAO] = 0,[MJ_ZFB] = 0}
+    for i = 1,#userPai do
+      local paitype = CheckSinglePaiType(userPai[i])
+      if paitype <= 3 then
+        num_count[paitype] = num_count[paitype] + 1
+      end
+    end
+
+    -- 检查是哪种牌 >=  13
+    local pai_type = 0
+    for i = 1,#num_count do
+      if num_count[i] >= 13 then
+        pai_type = i
+      end
+    end
+
+    -- 相同牌数的牌 >= 13
+    if pai_type ~= 0 then
+
+      local count = {[1] = 0,[2] = 0,[3] = 0,[4] = 0,[5] = 0,[6] = 0,[7] = 0,[8] = 0,[9] = 0}
+      for i = 1,#userPai do
+        local m_type = CheckSinglePaiType(userPai[i])
+        local m_num  = CheckSinglePaiNum(userPai[i])
+        if m_type == pai_type then
+          count[m_num] = count[m_num] + 1
+        end
+      end
+
+      -- 统计缺少牌的情况
+      local zero_count = 0
+      local zero_num   = 0
+      local size2_count= 0  -- 除111 和 999外，数目 >= 2 的组的数目
+      local size2_num1  = 0  -- 该牌的索引
+      local size2_num2 = 0
+      for i = 1,#count do
+        if count[i] == 0 then
+          zero_count = zero_count + 1
+          zero_num = i
+        end
+        if i ~= 1 and i ~= 9 then
+          if count[i] >= 2 then
+            size2_count = size2_count + 1
+            if size2_num1 == 0 then
+               size2_num1 = i
+            else size2_num2 = i
+            end
+          end
+        end
+      end
+
+      local target = 0
+      local need   = 0
+      if num_count[pai_type] == 13 then
+        for i = 1,#userPai do
+          if CheckSinglePaiType(userPai[i]) ~= pai_type then target = userPai[i] end
+        end
+      end
+
+      ----------讨论13张同花色情况  -----
+      if zero_count <= 1 and size2_count <= 1 and num_count[pai_type] == 13 then
+        if  zero_count == 1 and count[1] >= 3 and count[9] >= 3 then
+          found_ting  = true
+          need        = zero_num + 10 * pai_type
+        end
+        if zero_num == 0 and count[1] == 2 and count[9] >= 3 then
+          found_ting = true
+          need       = 1 + 10 * pai_type
+        end
+        if zero_num == 0 and count[1] >= 3 and count[9] == 2 then
+          found_ting = true
+          need       = 9 * 10 * pai_type
+        end
+
+        if found_ting == true then
+          local t_list = {target,need}
+          table.insert(ting_list,t_list)
+        end
+
+        if zero_num == 0 and count[1] >= 3 and count[9] >= 3 then
+          found_ting = true
+          if count[1] ~= 4 then
+            need = 1 + 10 * pai_type
+            local t_list = {target,need}
+            table.insert(ting_list,t_list)
+          end
+          if count[9] ~= 4 then
+            need = 9 + 10 * pai_type
+            local t_list = {target,need}
+            table.insert(ting_list,t_list)
+          end
+        end
+      end
+
+
+      -------- 下面讨论14张同花牌的情况
+      --　统计 2 ~ 8　的牌数和
+      if num_count[pai_type] == 14 then
+        local mid_count = 0
+        for i = 2,8,1 do
+          mid_count = mid_count + count[i]
+        end
+        -- 0  (2 8 4) or (4 2 8)
+        if zero_count == 0 and mid_count == 8 and ( count[1] + count[9] == 6 ) and ( count[1] == 2 or count[1] == 4 ) then
+           found_ting = true
+           if count[1] == 2 then
+            target = 9 + 10 * pai_type
+            need   = 1 + 10 * pai_type
+          else
+            target = 1 + 10 * pai_type
+            need   = 9 + 10 * pai_type
+          end
+          local t_list = {target,need}
+          table.insert(ting_list,t_list)
+        end
+        -- 0  (2 9 3 ) or (3 9 2)
+        if zero_count == 0 and mid_count == 9 and ( count[1] + count[9] == 5 ) and ( count[1] == 2 or count[1] == 3 ) then
+          found_ting = true
+          if count[1] == 2 then
+            need   = 1 + 10 * pai_type
+          else
+            need   = 9 + 10 * pai_type
+          end
+          if size2_count == 1 then
+            target = size2_num1 + 10 * pai_type
+            local t_list = {target,need}
+            table.insert(ting_list,t_list)
+          elseif size2_count == 2 then
+            local target1 = size2_num1 + 10 * pai_type
+            local target2 = size2_num2 + 10 * pai_type
+            local t_list1 = {target1,need}
+            local t_list2 = {target2,need}
+            table.insert(ting_list,t_list1)
+            table.insert(ting_list,t_list2)
+          end
+        end
+        -- 1 (3 7 4) or (4 7 3)
+        if zero_count == 1 and mid_count == 7 and ( count[1] + count[9] == 7 ) and ( count[1] == 3 or count[1] == 4 ) then
+          found_ting = true
+          if count[1] == 4 then
+               target1 = 1 + 10 * pai_type
+          else target1 = 9 + 10 * pai_type end
+          need = zero_num + 10 * pai_type
+          local target2 = size2_num1 + 10 * pai_type
+          local t_list1 = {target1,need}
+          local t_list2 = {target2,need}
+          table.insert(ting_list,t_list1)
+          table.insert(ting_list,t_list2)
+
+        end
+        -- 1 (3 8 3)
+        if zero_count == 1 and mid_count == 8 and ( count[1] == 3 and count[9] == 3 ) then
+          found_ting = true
+          need = zero_num + 10 * pai_type
+          if size2_count == 1 then
+          target = size2_num1 + 10 * pai_type
+          local t_list = {target,need}
+          table.insert(ting_list,t_list)
+          elseif size2_count == 2 then
+          local target1 = size2_num1 + 10 * pai_type
+          local target2 = size2_num2 + 10 * pai_type
+          local t_list1 = {target1,need}
+          local t_list2 = {target2,need}
+          table.insert(ting_list,t_list1)
+          table.insert(ting_list,t_list2)
+        end
+      end
+    end
+  end
+  -- if sum_hu == 5 then return false,0,0 end
+
+  -- ********** 四组“胡”且将 == 0 或 1 ************************************************
+
+  if sum_hu == 4 and sum_jiang < 2 and found_ting == false then
     -- 剩下的一组所需要的将 为 1 或 0
     local jiang_need = 1 - sum_jiang
     -- 找出是哪一组没法“胡”
     local target = 0
     for i = 1,#pai_info do
       if pai_info[i][1] == false then target = i end
-  end
+    end
     -- 从该组第一张牌开始替换
     for i = 1,#sort_pai["My"][target] do
       local t_pai = sort_pai["My"][target][i]
@@ -742,79 +771,141 @@ local function CheckTingPai(userPai)
     end
   end
 
-  -- ********** 三组“胡” 且将 == 0 或 1 ************
-    if sum_hu == 3 and sum_jiang < 2 then
-      -- 找出是哪两组没法“胡”
-      local target1 = 0
-      local target2 = 0
-      for i = 1,#pai_info do
-        if pai_info[i][1] == false then
-          if target1 == 0 then target1 = i
-            else target2 = i
+  -- ********** 三组“胡” 且将 == 0 或 1 ********************************************************
+  if sum_hu == 3 and sum_jiang < 2 and found_ting == false then
+    -- 找出是哪两组没法“胡”
+    local target1 = 0
+    local target2 = 0
+    for i = 1,#pai_info do
+      if pai_info[i][1] == false then
+        if target1 == 0 then target1 = i
+          else target2 = i
+        end
+      end
+    end
+    -- 剩下的两组所需要的将 为 1 或 0
+    local jiang_need = 1 - sum_jiang
+    -- 删掉第一组中的牌，往第二组加一张牌
+    for i = 1,#sort_pai["My"][target1] do
+      -- 记录下第一组牌中被删除的牌
+      local t_pai = sort_pai["My"][target1][i]
+      table.remove(sort_pai["My"][target1],i)
+      local t1 = false
+      local k1 = 0
+      t1,k1 = ValidHu(sort_pai["My"][target1],1,#sort_pai["My"][target1])
+      -- 删掉第一组牌能胡，给第二组牌添加一张牌，测试 胡 和将
+      if t1 == true then
+        for k = 1,#collection[target2] do
+          local t_pai2 = CopyPai(sort_pai["My"][target2])
+          table.insert(t_pai2,collection[target2][k])
+          table.sort(t_pai2)
+          local t2 = false
+          local k2 = 0
+          t2,k2 = ValidHu(t_pai2,1,#t_pai2)
+          -- if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target2][k] end
+          if t2 == true and k2 + k1 == jiang_need then
+            found_ting = true
+            local t_list = {t_pai,collection[target2][k]}
+            table.insert(ting_list,t_list)
           end
         end
       end
-      -- 剩下的两组所需要的将 为 1 或 0
-      local jiang_need = 1 - sum_jiang
-      -- 删掉第一组中的牌，往第二组加一张牌
-      for i = 1,#sort_pai["My"][target1] do
-        -- 记录下第一组牌中被删除的牌
-        local t_pai = sort_pai["My"][target1][i]
-        table.remove(sort_pai["My"][target1],i)
-        local t1 = false
-        local k1 = 0
-        t1,k1 = ValidHu(sort_pai["My"][target1],1,#sort_pai["My"][target1])
-        -- 删掉第一组牌能胡，给第二组牌添加一张牌，测试 胡 和将
-        if t1 == true then
-          for k = 1,#collection[target2] do
-            local t_pai2 = CopyPai(sort_pai["My"][target2])
-            table.insert(t_pai2,collection[target2][k])
-            table.sort(t_pai2)
-            local t2 = false
-            local k2 = 0
-            t2,k2 = ValidHu(t_pai2,1,#t_pai2)
-            -- if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target2][k] end
-            if t2 == true and k2 + k1 == jiang_need then
-              found_ting = true
-              local t_list = {t_pai,collection[target2][k]}
-              table.insert(ting_list,t_list)
-            end
+      -- 还原第一组牌
+      table.insert(sort_pai["My"][target1],i,t_pai)
+    end
+    -- 交换下位置
+    -- 删掉第二组中的牌，往第一组加一张牌
+    for i = 1,#sort_pai["My"][target2] do
+      -- 记录下第二组牌中被删除的牌
+      local t_pai = sort_pai["My"][target2][i]
+      table.remove(sort_pai["My"][target2],i)
+      local t1 = false
+      local k1 = 0
+      t1,k1 = ValidHu(sort_pai["My"][target2],1,#sort_pai["My"][target2])
+      -- 第二组牌能胡，往第一组牌中加入牌，测试 胡、将
+      if t1 == true then
+      -- 往第一组牌加入一张牌
+        for k = 1,#collection[target1] do
+          local t_pai2 = CopyPai(sort_pai["My"][target1])
+          table.insert(t_pai2,collection[target1][k])
+          table.sort(t_pai2)
+          local t2 = false
+          local k2 = 0
+          t2,k2 = ValidHu(t_pai2,1,#t_pai2)
+          -- if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target1][k] end
+          if t2 == true and k2 + k1 == jiang_need then
+            found_ting = true
+            local t_list = {t_pai,collection[target1][k]}
+            table.insert(ting_list,t_list)
           end
         end
-        -- 还原第一组牌
-        table.insert(sort_pai["My"][target1],i,t_pai)
       end
-      -- 交换下位置
-      -- 删掉第二组中的牌，往第一组加一张牌
-      for i = 1,#sort_pai["My"][target2] do
-        -- 记录下第二组牌中被删除的牌
-        local t_pai = sort_pai["My"][target2][i]
-        table.remove(sort_pai["My"][target2],i)
-        local t1 = false
-        local k1 = 0
-        t1,k1 = ValidHu(sort_pai["My"][target2],1,#sort_pai["My"][target2])
-        -- 第二组牌能胡，往第一组牌中加入牌，测试 胡、将
-        if t1 == true then
-        -- 往第一组牌加入一张牌
-          for k = 1,#collection[target1] do
-            local t_pai2 = CopyPai(sort_pai["My"][target1])
-            table.insert(t_pai2,collection[target1][k])
-            table.sort(t_pai2)
-            local t2 = false
-            local k2 = 0
-            t2,k2 = ValidHu(t_pai2,1,#t_pai2)
-            -- if t2 == true and k2 + k1 == jiang_need then return true,t_pai,collection[target1][k] end
-            if t2 == true and k2 + k1 == jiang_need then
-              found_ting = true
-              local t_list = {t_pai,collection[target1][k]}
-              table.insert(ting_list,t_list)
-            end
-          end
-        end
-        -- 还原第二组牌
-        table.insert(sort_pai["My"][target2],i,t_pai)
-      end
+      -- 还原第二组牌
+      table.insert(sort_pai["My"][target2],i,t_pai)
+    end
   end
+
+  -- ************************************ 检查是否听 十三幺 **********************************************************
+  if sum_hu < 3 and found_ting == false then
+    local ssy_list = {11,19,21,29,31,39,41,43,45,47,51,53,55}
+    local ssy_count = {
+    [11] = 0,[19] = 0,[21] = 0,[29] = 0,[31] = 0,[39] = 0,[41] = 0,[43] = 0,[45] = 0,[47] = 0,[51] = 0,
+    [53] = 0,[55] = 0}
+
+    -- 扫描用户牌,统计出现十三幺各牌的个数
+    for i = 1,#userPai do
+      for j = 1,#ssy_list do
+        if userPai[i] == ssy_list[j] then
+          ssy_count[ssy_list[j]] = ssy_count[ssy_list[j]] + 1
+        end
+      end
+    end
+
+    local sum  = 0
+    local zero = 0
+    for i = 1,#ssy_list do
+      if ssy_count[ssy_list[i]] == 0 then zero = zero + 1 end
+      sum = sum + ssy_count[ssy_list[i]]
+    end
+
+    -- 能听的情况只有
+    -- 1. zero = 0 &&  sum = 13   : 找出不在ssy_list 中的牌，返回 -- 11,19,21,29,31,39,41,43,45,47,51,53,55,()
+    -- 2. zero = 1 &&  sum = 13   : 同 1                             11,(18),21,29,31,39,41,43,45,47,51,53,55,55
+    -- 3. zero = 1 &&  sum = 14   : 找出牌数大于1的组，可能为两组或一组（3张相同）11,(11),21,29,31,39,41,43,45,47,51,53,55,55
+
+    ---- 讨论 1,2 合为一种情况 -------------
+    if ( zero == 0 or zero == 1 ) and sum == 13 then
+      local target = 0
+      for i = 1,#userPai do
+        local found = false
+        for j = 1,#ssy_list do
+          if userPai[i] == ssy_list[j] then found = true end
+        end
+        if found == false then target = i end
+      end
+      -- 这里就只插入一张
+      found_ting = true
+      local t_list = {userPai[target],ssy_list[1]}
+      table.insert(ting_list,t_list)
+    end
+    ---- 讨论3  ----------------------
+    if zero ==  1 and sum ==  14 then
+      -- 找出欠缺的牌
+      local pai_need = 0
+      for i = 1,#ssy_list do
+        if ssy_count[ssy_list[i]] == 0 then pai_need = ssy_list[i] end
+      end
+      -- 找出牌数大于1的组,添加
+      for i = 1,#ssy_list do
+        if ssy_count[ssy_list[i]] > 1 then
+          found_ting = true
+          local t_list = {ssy_list[i],pai_need}
+          table.insert(ting_list,t_list)
+        end
+      end
+    end
+  end
+end
   return found_ting,ting_list
 end
 
@@ -1108,8 +1199,10 @@ local function CheckJLBD(userPai)
     for j = 1,#t_pai do
       if t_pai[j] == JLBD_list[i][j] then
         count = count + 1
-      else count = 0 end
-      if count == n then return true end
+      else
+        count = 0 end
+      if count == n then
+        return true end
     end
    end
    return false
@@ -1123,28 +1216,19 @@ local function CheckDSY(userPai)
   local bai = 0
   for i=1,#userPai
   do
-    if CheckSinglePaiType(userPai[i]) == MJ_ZFB
-    then
-      if CheckSinglePaiNum(userPai[i]) == 1
-      then
-        zhong = zhong+1
-      end
-      if CheckSinglePaiNum(userPai[i]) == 3
-      then
-        fa = fa+1
-      end
-      if CheckSinglePaiNum(userPai[i]) == 5
-      then
-        bai = bai+1
-      end
+    if CheckSinglePaiType(userPai[i]) == MJ_ZFB then
+      if CheckSinglePaiNum(userPai[i]) == 1 then
+        zhong = zhong+1 end
+      if CheckSinglePaiNum(userPai[i]) == 3 then
+        fa = fa+1 end
+      if CheckSinglePaiNum(userPai[i]) == 5 then
+        bai = bai+1  end
     end
   end
-  if zhong<3 or fa<3 or bai<3
-  then
+  if zhong<3 or fa<3 or bai<3 then
     return false
   else
-    return true
-  end
+    return true end
 end
 
 local function CheckDSX(userPai)
@@ -1155,39 +1239,27 @@ local function CheckDSX(userPai)
   local xi = 0
   local bei = 0
 
-  for i=1,#userPai
-  do
-    if CheckSinglePaiType(userPai[i]) == MJ_FENG
-      then
+  for i=1,#userPai do
+    if CheckSinglePaiType(userPai[i]) == MJ_FENG then
       --东
-      if CheckSinglePaiNum(userPai[i]) == 1
-      then
-        dong = dong + 1
-      end
+      if CheckSinglePaiNum(userPai[i]) == 1 then
+        dong = dong + 1 end
       --南
-      if CheckSinglePaiNum(userPai[i]) == 3
-      then
-        nan = nan + 1
-      end
+      if CheckSinglePaiNum(userPai[i]) == 3 then
+        nan = nan + 1 end
       --西
-      if CheckSinglePaiNum(userPai[i]) == 5
-      then
-        xi = xi + 1
-      end
+      if CheckSinglePaiNum(userPai[i]) == 5 then
+        xi = xi + 1 end
       --北
-      if CheckSinglePaiNum(userPai[i]) == 7
-      then
-        bei = bei + 1
-      end
+      if CheckSinglePaiNum(userPai[i]) == 7 then
+        bei = bei + 1 end
     end
   end
 
-  if dong < 3 or xi < 3 or nan < 3 or bei < 3
-  then
+  if dong < 3 or xi < 3 or nan < 3 or bei < 3 then
     return false
   else
-    return true
-  end
+    return true end
 end
 
 local function CheckSSY(userPai)
@@ -1265,120 +1337,35 @@ local function CheckSSY(userPai)
 
 end
 
-
-
-function CheckHuScore(userPai)
-  -- 计算番数
-  -- 此处用户牌userPai包含自摸牌
-  if CheckDSX(userPai) == true
-  then
-    print("DSX")
-  end
-  if CheckDSY(userPai) == true
-  then
-    print("DSY")
-  end
-end
-
-
-local function CheckHu(userPai,zimoPai)
+local function CheckHu(userPai)
   --测试胡牌
   --IN:用户牌，自摸牌
   --OUT：true-胡，false-不能胡
 
+  -- 先检测特殊牌型 (十三幺 和 九莲宝灯)
 
-  local paiGroup = SortByType(userPai)
-  --插入自摸牌
-  local type = CheckSinglePaiType(zimoPai)
-  table.insert(paiGroup["My"][type],zimoPai)
-  table.sort( paiGroup["My"][type], function(a,b) return a<b end)
+  if CheckSSY(userPai) or CheckJLBD(userPai) then return true end
 
-  -- 先检测特殊牌型 (十三幺 和 九莲宝灯), 要求传入原始的14张牌
-  local t_pai = {}
-  for i = 1,#userPai do
-    table.insert(t_pai,userPai[i])
-  end
-  table.insert(t_pai,zimoPai)
+  -- 检测普通胡牌牌型
+  local sort_pai = SortByType(userPai)
 
-  if CheckSSY(t_pai) or CheckJLBD(t_pai) then return true end
-  -- 非十三幺，检测普通牌型
-
-  local jiangPaiNum = 0   --通过将牌的测试判断胡
-  for i=1,5
-  do
-    if #(paiGroup["My"][i]) == 2
-    then
-      if CheckAAPai(paiGroup["My"][i][1],paiGroup["My"][i][2]) == false
-      then
-        return false
-      else
-        jiangPaiNum=jiangPaiNum+1
-      end
-    elseif #(paiGroup["My"][i]) == 3
-    then
-      if Check3Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3]) == false
-      then
-        return false
-      end
-    elseif #(paiGroup["My"][i]) == 5
-    then
-      if Check5Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5]) == false
-      then
-        return false
-      else
-        jiangPaiNum=jiangPaiNum+1
-      end
-    elseif #(paiGroup["My"][i]) == 6
-    then
-      if Check6Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6]) == false
-      then
-        return false
-      end
-    elseif #(paiGroup["My"][i]) == 8
-    then
-      if Check8Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8]) == false
-      then
-        return false
-      else
-        jiangPaiNum=jiangPaiNum+1
-      end
-    elseif #(paiGroup["My"][i]) == 9
-    then
-      if Check9Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8],paiGroup["My"][i][9]) == false
-      then
-        return false
-      end
-    elseif #(paiGroup["My"][i]) == 11
-    then
-      if Check11Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8],paiGroup["My"][i][9],paiGroup["My"][i][10],paiGroup["My"][i][11]) == false
-      then
-        return false
-      else
-        jiangPaiNum=jiangPaiNum+1
-      end
-    elseif #(paiGroup["My"][i]) == 12
-    then
-      if Check12Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8],paiGroup["My"][i][9],paiGroup["My"][i][10],paiGroup["My"][i][11],paiGroup["My"][i][12]) == false
-      then
-        return false
-      end
-    elseif #(paiGroup["My"][i]) == 14
-    then
-      if Check14Pai(paiGroup["My"][i][1],paiGroup["My"][i][2],paiGroup["My"][i][3],paiGroup["My"][i][4],paiGroup["My"][i][5],paiGroup["My"][i][6],paiGroup["My"][i][7],paiGroup["My"][i][8],paiGroup["My"][i][9],paiGroup["My"][i][10],paiGroup["My"][i][11],paiGroup["My"][i][12],paiGroup["My"][i][13],paiGroup["My"][i][14]) == false
-      then
-        return false
-      else
-        jiangPaiNum=jiangPaiNum+1
-      end
-    end
+  local count_hu    = 0
+  local count_jiang = 0
+  local t  = false        -- 临时变量
+  local k  = 0            -- 临时变量
+  -- 对各分组求"胡
+  for i = 1,#sort_pai["My"] do
+    t,k = ValidHu(sort_pai["My"][i],1,#sort_pai["My"][i])
+    if t == true then count_hu    = count_hu + 1 
+      else break end
+    if k == 1    then count_jiang = count_jiang + 1 end
   end
 
-  if jiangPaiNum == 1
-  then
+  if count_hu == 5 and count_jiang == 1 then
     return true
   else
-    return false
-  end
+    return false end
+
 end
 
 local function PrintPai(userpai)
@@ -1391,21 +1378,10 @@ local function PrintPai(userpai)
   end
 
 end
-local function CheckHu_p(userPai)
-
-  local t_pai = {}
-  for i = 1,#userPai do
-    table.insert(t_pai,userPai[i])
-  end
-  local zimopai = table.remove(t_pai)
-
-  return CheckHu(t_pai,zimopai)
-
-end
 
 local function CheckPaiXing(userpai)
 
-  if CheckHu_p(userpai) == false then return false end
+  if CheckHu(userpai) == false then return false end
   PrintPai(userpai)
   if CheckSSY(userpai)  == true then print("十三幺")  return true end
   if CheckJLBD(userpai) == true then print("九莲宝灯") return true end
@@ -1465,176 +1441,83 @@ function CheckAll(userPai,aPai,flag)
 
   --杠(判断胡牌后再判断自摸加杠)
   attribute["Gang"] = CheckGangPai(userPai,aPai,flag)
-
-
   return attribute
 end
 
 
 
+---------------------------------- 测试  --------------------------------------------------------------------
+
 local list = {
-
     -- 删除将牌测试
-    {11,11,22,22,33,33,33,34,35,51,51,51,55,55}
-       -- （十三幺） 所有可能
- --{11,19,21,29,31,39,41,43,45,47,51,53,55},
- -- {11,19,21,29,31,39,41,41,43,45,47,51,53,55},
- -- {11,19,21,29,31,39,41,43,43,45,47,51,53,55},
- -- {11,19,21,29,31,39,41,43,45,45,47,51,53,55},
- -- {11,19,21,29,31,39,41,43,45,47,47,51,53,55},
- -- {11,19,21,29,31,39,41,43,45,47,51,51,53,55},
- -- {11,19,21,29,31,39,41,43,45,47,51,53,53,55},
- -- {11,19,21,29,31,39,41,43,45,47,51,53,55,55},
- -- -- 十三幺 失败
- -- {11,11,19,21,29,31,39,41,43,45,47,51,53,55},
- -- {11,19,19,21,29,31,39,41,43,45,47,51,53,55},
- -- {11,19,21,21,29,31,39,41,43,45,47,51,53,55},
- -- {11,19,21,29,29,31,39,41,43,45,47,51,53,55},
- -- {11,19,21,29,31,31,39,41,43,45,47,51,53,55},
- -- {11,19,21,29,31,39,39,41,43,45,47,51,53,55},
- -- -- （九莲宝灯） 所有可能
- -- --{11,11,11,12,13,14,15,16,17,18,19,19,19}
- -- {11,11,11,11,12,13,14,15,16,17,18,19,19,19},
- -- {11,11,11,12,12,13,14,15,16,17,18,19,19,19},
- -- {11,11,11,12,13,13,14,15,16,17,18,19,19,19},
- -- {11,11,11,12,13,14,14,15,16,17,18,19,19,19},
- -- {11,11,11,12,13,14,15,15,16,17,18,19,19,19},
- -- {11,11,11,12,13,14,15,16,16,17,18,19,19,19},
- -- {11,11,11,12,13,14,15,16,17,17,18,19,19,19},
- -- {11,11,11,12,13,14,15,16,17,18,18,19,19,19},
- -- {11,11,11,12,13,14,15,16,17,18,19,19,19,19},
- -- -- 大四喜
- -- {41,41,41,43,43,43,45,45,45,47,47,47,51,51},
- -- {41,41,41,43,43,43,45,45,45,47,47,47,11,11},
- -- -- 大三元
- -- {51,51,51,53,53,53,55,55,55,11,11,11,12,12},
- -- -- 清幺九
- -- {11,11,11,19,19,19,21,21,21,29,29,29,31,31},
- -- -- 字一色
- -- {41,41,41,43,43,43,45,45,45,51,51,51,53,53},
- -- {41,41,41,43,43,43,45,45,45,51,51,51,55,55},
- -- -- 小四喜
- -- {41,41,41,43,43,43,45,45,45,47,47,11,11,11},
- -- {41,41,41,43,43,45,45,45,47,47,47,11,12,13},
- -- {41,41,43,43,43,45,45,45,47,47,47,11,12,13},
- -- -- 小三元
- -- {51,51,51,53,53,53,55,55,11,11,11,12,12,12},
- -- {51,51,53,53,53,55,55,55,41,41,41,43,43,43},
- -- {51,51,51,53,53,55,55,55,22,23,24,25,25,27},
- -- -- 混幺九
- -- {11,11,11,19,19,19,21,21,21,29,29,29,51,51},
- -- {11,11,11,19,19,19,21,21,21,29,29,29,53,53},
- -- 清碰
- -- {11,11,11,12,12,12,13,13,13,14,14,14,15,15},
- -- {12,12,12,15,15,15,17,17,17,18,18,18,19,19},
- -- 清一色
---     {11,11,11,12,13,14,15,15,15,16,17,18,19,19},
---     {11,11,11,11,12,13,14,15,16,17,17,17,18,18},
--- --  混碰
---     {11,11,11,12,12,12,13,13,13,14,14,14,51,51},
---     {11,11,11,12,12,12,13,13,13,14,14,14,53,53},
--- --  混一色
---     {11,11,11,12,12,12,13,13,13,51,51,53,53,53},
--- --  碰碰胡
---     {11,11,11,21,21,21,34,34,34,41,41,41,53,53},
--- --  平胡
---     {11,12,13,21,22,23,31,32,33,17,18,19,51,51},
--- --  鸡胡
---     {11,12,13,21,22,23,33,33,33,41,41,41,51,51}
+{11,11,22,22,33,33,33,34,35,51,51,51,55,55},
+--（十三幺） 所有可能
+{11,19,21,29,31,39,41,43,45,47,51,53,55},
+{11,19,21,29,31,39,41,41,43,45,47,51,53,55},
+{11,19,21,29,31,39,41,43,43,45,47,51,53,55},
+{11,19,21,29,31,39,41,43,45,45,47,51,53,55},
+{11,19,21,29,31,39,41,43,45,47,47,51,53,55},
+{11,19,21,29,31,39,41,43,45,47,51,51,53,55},
+{11,19,21,29,31,39,41,43,45,47,51,53,53,55},
+{11,19,21,29,31,39,41,43,45,47,51,53,55,55},
+-- 十三幺 失败
+{11,11,19,21,29,31,39,41,43,45,47,51,53,55},
+{11,19,19,21,29,31,39,41,43,45,47,51,53,55},
+{11,19,21,21,29,31,39,41,43,45,47,51,53,55},
+{11,19,21,29,29,31,39,41,43,45,47,51,53,55},
+{11,19,21,29,31,31,39,41,43,45,47,51,53,55},
+{11,19,21,29,31,39,39,41,43,45,47,51,53,55},
+-- （九莲宝灯） 所有可能
+--{11,11,11,12,13,14,15,16,17,18,19,19,19}
+{11,11,11,11,12,13,14,15,16,17,18,19,19,19},
+{11,11,11,12,12,13,14,15,16,17,18,19,19,19},
+{11,11,11,12,13,13,14,15,16,17,18,19,19,19},
+{11,11,11,12,13,14,14,15,16,17,18,19,19,19},
+{11,11,11,12,13,14,15,15,16,17,18,19,19,19},
+{11,11,11,12,13,14,15,16,16,17,18,19,19,19},
+{11,11,11,12,13,14,15,16,17,17,18,19,19,19},
+{11,11,11,12,13,14,15,16,17,18,18,19,19,19},
+{11,11,11,12,13,14,15,16,17,18,19,19,19,19},
+-- 大四喜
+{41,41,41,43,43,43,45,45,45,47,47,47,51,51},
+{41,41,41,43,43,43,45,45,45,47,47,47,11,11},
+-- 大三元
+{51,51,51,53,53,53,55,55,55,11,11,11,12,12},
+-- 清幺九
+{11,11,11,19,19,19,21,21,21,29,29,29,31,31},
+-- 字一色
+{41,41,41,43,43,43,45,45,45,51,51,51,53,53},
+{41,41,41,43,43,43,45,45,45,51,51,51,55,55},
+-- 小四喜
+{41,41,41,43,43,43,45,45,45,47,47,11,11,11},
+{41,41,41,43,43,45,45,45,47,47,47,11,12,13},
+{41,41,43,43,43,45,45,45,47,47,47,11,12,13},
+-- 小三元
+{51,51,51,53,53,53,55,55,11,11,11,12,12,12},
+{51,51,53,53,53,55,55,55,41,41,41,43,43,43},
+{51,51,51,53,53,55,55,55,22,23,24,25,25,27},
+-- 混幺九
+{11,11,11,19,19,19,21,21,21,29,29,29,51,51},
+{11,11,11,19,19,19,21,21,21,29,29,29,53,53},
+--清碰
+{11,11,11,12,12,12,13,13,13,14,14,14,15,15},
+{12,12,12,15,15,15,17,17,17,18,18,18,19,19},
+-- 清一色
+{11,11,11,12,13,14,15,15,15,16,17,18,19,19},
+{11,11,11,11,12,13,14,15,16,17,17,17,18,18},
+--  混碰
+{11,11,11,12,12,12,13,13,13,14,14,14,51,51},
+{11,11,11,12,12,12,13,13,13,14,14,14,53,53},
+--  混一色
+{11,11,11,12,12,12,13,13,13,51,51,53,53,53},
+--  碰碰胡
+{11,11,11,21,21,21,34,34,34,41,41,41,53,53},
+--  平胡
+{11,12,13,21,22,23,31,32,33,17,18,19,51,51},
+--  鸡胡
+{11,12,13,21,22,23,33,33,33,41,41,41,51,51},
+{11,12,12,12,12,13,13,14,31,31,31,32,32,32}
 }
-
--- for i = 1,#list do
---   CheckPaiXing(list[i])
--- end
-
--- --------------以下函数作测试用------------
--- temp = {0051,0051,0051,0053,0053,0053,0055,0055,0055,0045,0045,0045,0024}
--- atemp = {0011,0012,0012,0012,0013,0021,0022,0023,0031,0032,0033,0041,0042}
--- for i=1,#temp
--- do
---     print(temp[i])
--- end
--- print("")
-
-
--- att = CheckAll(temp,0024,0)
-
--- if #att["Peng"] ~= 0
--- then
---  print("peng")
---  for i=1,#att["Peng"]
---  do
---    print(string.format("group%d",i))
---    for j=1,#att["Peng"][i] do
---      print(att["Peng"][i][j])
---    end
---  end
--- else
---  print("no peng")
--- end
-
--- if #att["Chi"] ~= 0
--- then
---  print("chi")
---  for i=1,#att["Chi"]
---  do
---    print(string.format("group%d",i))
---    for j=1,#att["Chi"][i] do
---      print(att["Chi"][i][j])
---    end
---  end
--- else
---  print("no chi")
--- end
-
--- if #att["Gang"] ~= 0
--- then
---  print("gang")
---  for i=1,#att["Gang"]
---  do
---    print(string.format("group%d",i))
---    for j=1,#att["Gang"][i] do
---      print(att["Gang"][i][j])
---    end
---  end
--- else
---  print("no gang")
--- end
-
--- if att["Hu"] == 1
--- then
---  print("hu")
---  table.insert(temp,0024)
---  CheckHuScore(temp)
--- else
---  print("no hu")
--- end
-
-local ting_pai = {
-      {11,12,13,21,23,31,31,31,41,41,41,43,43,43}, -- true,21,23
-  {11,12,13,21,23,31,31,31,41,41,41,43,43,45},
-  {11,12,13,21,23,31,31,31,41,41,42,43,43,45},
-   {11,12,13,21,23,31,31,31,41,41,41,43,43,45},
-
-   {11,12,12,21,21,21,23,23,23,41,41,41,43,43},-- 11 12
-  {11,12,21,21,21,23,23,23,41,41,41,43,43,43},--
-}
-
-for i = 1,#ting_pai do
-  local t = false
-  local t_list
-  PrintPai(ting_pai[i])
-  k,t_list = CheckTingPai(ting_pai[i])
-  if k == false then print("听你妹")
-  else
-    for i = 1,#t_list do
-      io.write("丢: ",t_list[i][1])
-      io.write("   ")
-      io.write("听: ",t_list[i][2])
-      io.write("  ")
-    end
-  io.write("\n")
-  end
+for i = 1,#list do
+  CheckPaiXing(list[i])
 end
-
-

@@ -182,6 +182,7 @@ local function ValidABC(pai,i,n)
   -- 所以拆成两个列表  (1 2 3)|(22)
   -- 然后判断 ValidHu(22)
 
+  local t_pai = CopyPai(pai)
   -- 只有两张牌，必定没顺
   if n - i < 2  then
     return false
@@ -189,23 +190,23 @@ local function ValidABC(pai,i,n)
 
   local found_B = false
   local found_C = false
-  for j = i+1,#pai,1 do
-    if found_B == false and pai[j] == ( pai[i] + 1 ) then
+  for j = i+1,#t_pai,1 do
+    if found_B == false and t_pai[j] == ( t_pai[i] + 1 ) then
       found_B = true
       -- 交换两张牌的位置
-      t = pai[i + 1]
-      pai[i + 1] = pai[j]
-      pai[j] = t
+      t = t_pai[i + 1]
+      t_pai[i + 1] = t_pai[j]
+      t_pai[j] = t
     end
   end
 
   for k = i + 2,#pai,1 do
-    if found_C== false and pai[k] == ( pai[i] + 2 ) then
+    if found_C== false and t_pai[k] == ( t_pai[i] + 2 ) then
       found_C = true
       -- 交换两张牌的位置
       t = pai[i + 2]
-      pai[i + 2] = pai[k]
-      pai[k] = t
+      t_pai[i + 2] = t_pai[k]
+      t_pai[k] = t
     end
   end
 
@@ -219,7 +220,7 @@ local function ValidABC(pai,i,n)
     local new_list = {}
     local k = 1
     for j = i + 3,#pai,1 do
-      new_list[k] = pai[j]
+      new_list[k] = t_pai[j]
       k = k + 1
     end
     -- 对新建数组进行排序
@@ -231,6 +232,7 @@ local function ValidABC(pai,i,n)
   else
     return false,{nil}
   end
+
 end
 local function ValidHu(pai,i,n)
   -- 空牌组直接胡
@@ -748,11 +750,12 @@ function CheckTingPai(userPai)
     for i = 1,#pai_info do
       if pai_info[i][1] == false then target = i end
     end
+
     -- 从该组第一张牌开始替换
     for i = 1,#sort_pai["My"][target] do
       local t_pai = sort_pai["My"][target][i]
       for j = 1,#collection[target] do
-        local save_pai = sort_pai["My"][target][i]
+        -- local save_pai = sort_pai["My"][target][i]
         sort_pai["My"][target][i] = collection[target][j]
         local t = false
         local k = 0
@@ -762,10 +765,9 @@ function CheckTingPai(userPai)
         if t == true and k == jiang_need then
           found_ting = true
           -- 注意本轮被替换的数实际是
-          local t_list = {save_pai,collection[target][j]}
+          local t_list = {t_pai,collection[target][j]}
           table.insert(ting_list,t_list)
         end
-        sort_pai["My"][target][i] = save_pai
       end
       sort_pai["My"][target][i] = t_pai
     end
@@ -906,7 +908,18 @@ function CheckTingPai(userPai)
     end
   end
 end
-  return ting_list
+  -- 过滤掉相同的组
+  local unique_list = {}
+  for i = 1,#ting_list do
+    local found_same = false
+    for j = 1,#unique_list do
+      if ting_list[i][1] == unique_list[j][1] and ting_list[i][2] == unique_list[j][2] then found_same = true end
+    end
+    if found_same ~= true then table.insert(unique_list,ting_list[i]) end
+  end
+
+
+  return unique_list
 end
 
 local function CheckKe(userpai,i,n)
@@ -1356,7 +1369,7 @@ local function CheckHu(userPai)
   -- 对各分组求"胡
   for i = 1,#sort_pai["My"] do
     t,k = ValidHu(sort_pai["My"][i],1,#sort_pai["My"][i])
-    if t == true then count_hu    = count_hu + 1 
+    if t == true then count_hu    = count_hu + 1
       else break end
     if k == 1    then count_jiang = count_jiang + 1 end
   end
@@ -1538,7 +1551,7 @@ function checkAI(AIPai)
   -- 检测AI
   --先检测是否能胡牌或听牌
   --。。。
-  
+
   --返回出牌的序号
   local weight = createWeight(AIPai)
   local k = 1
@@ -1623,7 +1636,7 @@ local list = {
 -- --  鸡胡
 -- {11,12,13,21,22,23,33,33,33,41,41,41,51,51},
 -- {11,12,12,12,12,13,13,14,31,31,31,32,32,32}
-{11,12,13,24,25,26,36,38}
+{13,14,15,18,18,19,21,22,23,26,26}
 }
 local m_table = {}
 m_table = CheckTingPai(list[1])

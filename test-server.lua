@@ -194,7 +194,7 @@ local function ValidABC(pai,i,n)
     if found_B == false and t_pai[j] == ( t_pai[i] + 1 ) then
       found_B = true
       -- 交换两张牌的位置
-      t = t_pai[i + 1]
+      local t = t_pai[i + 1]
       t_pai[i + 1] = t_pai[j]
       t_pai[j] = t
     end
@@ -204,7 +204,7 @@ local function ValidABC(pai,i,n)
     if found_C== false and t_pai[k] == ( t_pai[i] + 2 ) then
       found_C = true
       -- 交换两张牌的位置
-      t = pai[i + 2]
+      local t = t_pai[i + 2]
       t_pai[i + 2] = t_pai[k]
       t_pai[k] = t
     end
@@ -1371,7 +1371,7 @@ local function CheckHu(userPai)
     t,k = ValidHu(sort_pai["My"][i],1,#sort_pai["My"][i])
     if t == true then count_hu    = count_hu + 1
       else break end
-    if k == 1    then count_jiang = count_jiang + 1 end
+    count_jiang = count_jiang + k
   end
 
   if count_hu == 5 and count_jiang == 1 then
@@ -1636,10 +1636,9 @@ local list = {
 -- --  鸡胡
 -- {11,12,13,21,22,23,33,33,33,41,41,41,51,51},
 -- {11,12,12,12,12,13,13,14,31,31,31,32,32,32}
-{13,14,15,18,18,19,21,22,23,26,26}
+   {31,31,33,33,37,37,38,38,39,53,53,55,55,55}
+
 }
-local m_table = {}
-m_table = CheckTingPai(list[1])
-for i = 1,#m_table do
-  print(m_table[i][1],m_table[i][2],'\n')
+if CheckHu(list[1]) == true then
+  print("胡")
 end

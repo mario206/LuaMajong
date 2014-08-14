@@ -1397,24 +1397,42 @@ end
 
 local function CheckPaiXing(userpai)
 
-  if CheckHu(userpai) == false then return false end
-  PrintPai(userpai)
-  if CheckSSY(userpai)  == true then print("十三幺")  return true end
-  if CheckJLBD(userpai) == true then print("九莲宝灯") return true end
-  if CheckDSX(userpai)  == true then print("大四喜") return true end
-  if CheckDSY(userpai)  == true then print("大三元") return true end
-  if CheckXSY(userpai)  == true then print("小三元") return true end
-  if CheckQYJ(userpai)  == true then print("清幺九") return true end
-  if CheckZYS(userpai)  == true then print("字一色") return true end
-  if CheckXSX(userpai)  == true then print("小四喜") return true end
-  if CheckHYJ(userpai)  == true then print("混幺九") return true end
-  if CheckQP(userpai)   == true then print("清碰") return true end
-  if CheckHP(userpai)   == true then print("混碰") return true end
-  if CheckQYS(userpai)  == true then print("清一色") return true end
-  if CheckHYS(userpai)  == true then print("混一色") return true end
-  if CheckPPH(userpai)  == true then print("碰碰胡") return true end
-  if CheckPH(userpai)   == true then print("平胡") return true end
-  print("鸡胡")
+  if CheckHu(userpai)   == false then return -1 end
+  if CheckSSY(userpai)  == true  then return 15 end
+  if CheckJLBD(userpai) == true  then return 14 end
+  if CheckDSX(userpai)  == true  then return 13 end
+  if CheckDSY(userpai)  == true  then return 12 end
+  if CheckQYJ(userpai)  == true  then return 11 end
+  if CheckZYS(userpai)  == true  then return 10 end
+  if CheckXSX(userpai)  == true  then return  9 end
+  if CheckXSY(userpai)  == true  then return  8 end
+  if CheckHYJ(userpai)  == true  then return  7 end
+  if CheckQP(userpai)   == true  then return  6 end
+  if CheckHP(userpai)   == true  then return  5 end
+  if CheckQYS(userpai)  == true  then return  4 end
+  if CheckHYS(userpai)  == true  then return  3 end
+  if CheckPPH(userpai)  == true  then return  2 end
+  if CheckPH(userpai)   == true  then return  1 end
+  return 0
+
+  -- if CheckHu(userpai)   == false then return false end
+  -- PrintPai(userpai)
+  -- if CheckSSY(userpai)  == true then print("十三幺")  return true end
+  -- if CheckJLBD(userpai) == true then print("九莲宝灯") return true end
+  -- if CheckDSX(userpai)  == true then print("大四喜") return true end
+  -- if CheckDSY(userpai)  == true then print("大三元") return true end
+  -- if CheckXSY(userpai)  == true then print("小三元") return true end
+  -- if CheckQYJ(userpai)  == true then print("清幺九") return true end
+  -- if CheckZYS(userpai)  == true then print("字一色") return true end
+  -- if CheckXSX(userpai)  == true then print("小四喜") return true end
+  -- if CheckHYJ(userpai)  == true then print("混幺九") return true end
+  -- if CheckQP(userpai)   == true then print("清碰") return true end
+  -- if CheckHP(userpai)   == true then print("混碰") return true end
+  -- if CheckQYS(userpai)  == true then print("清一色") return true end
+  -- if CheckHYS(userpai)  == true then print("混一色") return true end
+  -- if CheckPPH(userpai)  == true then print("碰碰胡") return true end
+  -- if CheckPH(userpai)   == true then print("平胡") return true end
+  -- print("鸡胡")
 end
 
 function CheckAll(userPai,aPai,flag)

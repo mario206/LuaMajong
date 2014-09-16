@@ -1385,7 +1385,240 @@ function CheckHu(userPai)
     return false end
 
 end
+local function ValidABC_Split(pai,i,n,split_pai)
+  -- 顺子要避开 1 222 3  这种可能组成 123 22 的情况
+  -- 所以拆成两个列表  (1 2 3)|(22)
+  -- 然后判断 ValidHu(22)
 
+  local t_pai = CopyPai(pai)
+  -- 只有两张牌，必定没顺
+  if n - i < 2  then
+    return false
+  end
+
+  local found_B = false
+  local found_C = false
+  for j = i+1,#t_pai,1 do
+    if found_B == false and t_pai[j] == ( t_pai[i] + 1 ) then
+      found_B = true
+      -- 交换两张牌的位置
+      local t = t_pai[i + 1]
+      t_pai[i + 1] = t_pai[j]
+      t_pai[j] = t
+    end
+  end
+
+  for k = i + 2,#pai,1 do
+    if found_C== false and t_pai[k] == ( t_pai[i] + 2 ) then
+      found_C = true
+      -- 交换两张牌的位置
+      local t = t_pai[i + 2]
+      t_pai[i + 2] = t_pai[k]
+      t_pai[k] = t
+    end
+  end
+
+  -- for k  = 1,#pai,1 do
+  --  print (pai[k])
+  -- end
+
+  -- 如果能找到顺，判断剩下的牌是否能胡
+  if found_B == true and found_C == true then
+    --split_pai = {t_pai[i],t_pai[i+1],t_pai[i+2]}    --- 能组成顺子的列表
+    table.insert(split_pai,t_pai[i])
+    table.insert(split_pai,t_pai[i+1])
+    table.insert(split_pai,t_pai[i+2])
+    -- 创建待判断列表
+    local new_list = {}
+    local k = 1
+    for j = i + 3,#pai,1 do
+      new_list[k] = t_pai[j]
+      k = k + 1
+    end
+    -- 对新建数组进行排序
+    table.sort(new_list)
+    -- for k = 1,#new_list,1 do
+    --  print (new_list[k])
+    -- end
+    return true,new_list
+  else
+    return false,{nil}
+  end
+end
+
+local function ValidHu_Split(pai,i,n,split_list,is_out) -- 最后一个参数表示是最外层
+  -- 空牌组直接胡
+  if n == 0 then
+    return true,0
+  end
+  
+  -- 存在两个将牌或少于两个牌，不可能胡
+  if n%3==1 then 
+    return false,0
+  end
+
+  -- 检测到末尾，胡
+  if i > n then
+    return true,0
+  end
+
+  -- 测试 AAA
+  if ValidAAA(pai,i,n) then
+    local merge_list = {}
+    local t = false
+    local k = 0
+    t,k = ValidHu(pai,i+3,n,0)
+    if t == true then
+      local list = {}  
+      --local list = {pai[i],pai[i],pai[i]}
+      table.insert(list,pai[i])
+      table.insert(list,pai[i])
+      table.insert(list,pai[i])
+
+      -- 如果是最外层，则将列表插入到新建的二级列表
+      if is_out == true then
+        table.insert(merge_list,list)
+        ValidHu_Split(pai,i+3,n,merge_list,false)
+      else
+        -- 如果不是最外层，则将列表插入到传入的二级列表
+        table.insert(split_list,list)
+        return ValidHu_Split(pai,i+3,n,split_list,false)
+      end
+
+      -- 如果是最外层，则将列表的列表插入到三级列表
+      if is_out  == true then
+        table.insert(split_list,merge_list)
+      end
+    end
+  end
+
+  -- 测试AA
+   if ValidAA(pai,i,n) then
+    local merge_list = {}
+    local t = false
+    local k = 0
+    t,k = ValidHu(pai,i+2,n)
+    if t == true and k == 0 then       
+     -- 限制 k == 0 可以解决 如 {11,11,11,12,12,12,13,13,13} 被拆分成
+     -- {11,12,13}  {11,11} {12,12} {13,13} 的情况
+      local list = {}
+      table.insert(list,pai[i])
+      table.insert(list,pai[i])
+      -- 如果是最外层，则将列表插入到新建的二级列表
+      if is_out == true then
+        table.insert(merge_list,list)
+        ValidHu_Split(pai,i+2,n,merge_list,false)
+      else
+        -- 如果不是最外层，则将列表插入到传入的二级列表
+        table.insert(split_list,list)
+        return ValidHu_Split(pai,i+2,n,split_list,false)
+      end
+      
+
+      -- 如果是最外层，则将列表的列表插入三级列表
+      if is_out  == true then
+        table.insert(split_list,merge_list)
+      end
+    end
+  end
+
+  -- 对万，条，饼测试ABC
+   if CheckSinglePaiType(pai[1]) ~= MJ_FENG and CheckSinglePaiType(pai[1]) ~= MJ_ZFB then
+    local merge_list = {}
+    local new_pai = {}
+    local t       = false
+    local list = {}
+    t,new_pai = ValidABC_Split(pai,i,n,list)
+    if t == true then
+      local t2 = false
+      local k  = 0
+      t2,k = ValidHu(new_pai,1,#new_pai)
+      if t2 == true then
+        -- 如果是最外层，则将列表插入到新建的二级列表
+        if is_out == true then
+          table.insert(merge_list,list)
+          ValidHu_Split(new_pai,1,#new_pai,merge_list,false)
+        else
+        -- 如果不是最外层，则将列表插入到传入的二级列表
+          table.insert(split_list,list)
+          return ValidHu_Split(new_pai,1,#new_pai,split_list,false)
+        end
+        
+        -- 如果是最外层，则将列表的列表插入三级列表
+        if is_out  == true then
+          table.insert(split_list,merge_list)
+        end
+      end
+    end
+  end
+  return false,0
+end
+
+local function SplitHuPai(userPai)
+  -- 这个函数最初是为了解决四川麻将中的【带幺牌】设计的
+  -- 接收 : 14张胡牌
+  -- 返回 : 胡牌的组合
+  ----  如接收   {11,11,11,12,12,12,13,13,13,51,51}
+    ---- 返回   {
+             -- {{11,11,11},{12,12,12},{13,13,13},{51,51}},
+             -- {{11,12,13},{11,12,13},{11,12,13},{51,51}}
+             -- }
+  -- 分成四组牌
+  local sort_pai = SortByType(userPai)
+
+  local split_pai = {
+  [MJ_WAN]  = {},
+  [MJ_TIAO] = {},
+  [MJ_BING] = {},
+  [MJ_FENG] = {},
+  [MJ_ZFB]  = {}
+  }
+
+  for i = 1,#sort_pai["My"] do
+    ValidHu_Split(sort_pai["My"][i],1,#sort_pai["My"][i],split_pai[i],true) -- 最后一个参数表示是最外层
+  end
+  -- return split_pai
+  local split_list = {}
+  -- 下面的解法详见《编程之美》 ---- 3.2
+  for i = 1,#split_pai do
+    if #split_pai[i] ~= 0 then
+      table.insert(split_list,split_pai[i])
+    end
+  end
+  local  n = #split_list        -- 一共有n个非空组
+  local  capacity = {}          -- 每个非空组的容量
+  local  pos      = {}          -- 每个非空组当前的位置
+  for i = 1,n do
+    table.insert(capacity,#split_list[i])
+    table.insert(pos,1)
+  end
+
+  local merge_list = {}
+  while true do
+    local t_list = {}
+    for i = 1,#split_list do
+      --table.insert(t_list,split_list[i][pos[i]])
+      for j = 1,#split_list[i][pos[i]] do
+        table.insert(t_list,split_list[i][pos[i]][j])
+      end
+    end
+    table.insert(merge_list,t_list)
+    local k = n
+    while k >= 1 do
+      if pos[k] < capacity[k] then
+        pos[k] =pos[k] + 1
+        break
+      else
+        pos[k] = 1
+        k = k - 1
+      end
+    end
+    if k < 1 then
+      break
+    end
+  end
+  return merge_list
+end
 local function PrintPai(userpai)
   local sort_pai = SortByType(userpai)
   for i = 1,#sort_pai["My"] do
@@ -1511,22 +1744,33 @@ local function CheckQys_SC( userPai )
   end
 end
 
-local function  CheckDy_SC( userPai )
+local function  CheckDy_SC(userPai)
   -- 带幺
   -- 每组搭子及将牌都带1或9，需缺门
+  --local is_dy = true           -- 初始标记为true
+  local found = false          -- 能不能找到1或9
+  local split_pai = SplitHuPai(userPai)
 
-  -- 至少需要6个1或9
-  local num = 0
-  for i,v in ipairs(userPai) do
-    if CheckSinglePaiNum(v) == 1 or CheckSinglePaiNum(v) == 9 then
-      num = num + 1
+  for i = 1,#split_pai do    
+    -- 扫描每一个胡牌组合
+    for j = 1,#split_pai[i] do
+      found = false
+      -- 扫描每一种组合里面的牌对
+      for k = 1,#split_pai[i][j] do
+        local num = CheckSinglePaiNum(split_pai[i][j][k])
+        if num == 1 or num == 9 then found = true end
+      end
+      -- 如果出现不含1，9的牌对，跳到上一层
+      if found == false then break end
     end
-  end
-  if num < 6 then
-    return false
+    -- 如果扫完完整的一组时found == true 直接返回
+    if found == true then return true end
   end
   
-  local sort_pai = SortByType(userPai)
+  return found
+
+
+
 
 end
 
@@ -1861,240 +2105,7 @@ function checkAIAction(AIPai,testPai)
   end
   return AItype,AIlist
 end
-local function ValidABC_Split(pai,i,n,split_pai)
-  -- 顺子要避开 1 222 3  这种可能组成 123 22 的情况
-  -- 所以拆成两个列表  (1 2 3)|(22)
-  -- 然后判断 ValidHu(22)
 
-  local t_pai = CopyPai(pai)
-  -- 只有两张牌，必定没顺
-  if n - i < 2  then
-    return false
-  end
-
-  local found_B = false
-  local found_C = false
-  for j = i+1,#t_pai,1 do
-    if found_B == false and t_pai[j] == ( t_pai[i] + 1 ) then
-      found_B = true
-      -- 交换两张牌的位置
-      local t = t_pai[i + 1]
-      t_pai[i + 1] = t_pai[j]
-      t_pai[j] = t
-    end
-  end
-
-  for k = i + 2,#pai,1 do
-    if found_C== false and t_pai[k] == ( t_pai[i] + 2 ) then
-      found_C = true
-      -- 交换两张牌的位置
-      local t = t_pai[i + 2]
-      t_pai[i + 2] = t_pai[k]
-      t_pai[k] = t
-    end
-  end
-
-  -- for k  = 1,#pai,1 do
-  --  print (pai[k])
-  -- end
-
-  -- 如果能找到顺，判断剩下的牌是否能胡
-  if found_B == true and found_C == true then
-    --split_pai = {t_pai[i],t_pai[i+1],t_pai[i+2]}    --- 能组成顺子的列表
-    table.insert(split_pai,t_pai[i])
-    table.insert(split_pai,t_pai[i+1])
-    table.insert(split_pai,t_pai[i+2])
-    -- 创建待判断列表
-    local new_list = {}
-    local k = 1
-    for j = i + 3,#pai,1 do
-      new_list[k] = t_pai[j]
-      k = k + 1
-    end
-    -- 对新建数组进行排序
-    table.sort(new_list)
-    -- for k = 1,#new_list,1 do
-    --  print (new_list[k])
-    -- end
-    return true,new_list
-  else
-    return false,{nil}
-  end
-end
-
-local function ValidHu_Split(pai,i,n,split_list,is_out) -- 最后一个参数表示是最外层
-  -- 空牌组直接胡
-  if n == 0 then
-    return true,0
-  end
-  
-  -- 存在两个将牌或少于两个牌，不可能胡
-  if n%3==1 then 
-    return false,0
-  end
-
-  -- 检测到末尾，胡
-  if i > n then
-    return true,0
-  end
-
-  -- 测试 AAA
-  if ValidAAA(pai,i,n) then
-    local merge_list = {}
-    local t = false
-    local k = 0
-    t,k = ValidHu(pai,i+3,n,0)
-    if t == true then
-      local list = {}  
-      --local list = {pai[i],pai[i],pai[i]}
-      table.insert(list,pai[i])
-      table.insert(list,pai[i])
-      table.insert(list,pai[i])
-
-      -- 如果是最外层，则将列表插入到新建的二级列表
-      if is_out == true then
-        table.insert(merge_list,list)
-        ValidHu_Split(pai,i+3,n,merge_list,false)
-      else
-        -- 如果不是最外层，则将列表插入到传入的二级列表
-        table.insert(split_list,list)
-        return ValidHu_Split(pai,i+3,n,split_list,false)
-      end
-
-      -- 如果是最外层，则将列表的列表插入到三级列表
-      if is_out  == true then
-        table.insert(split_list,merge_list)
-      end
-    end
-  end
-
-  -- 测试AA
-   if ValidAA(pai,i,n) then
-    local merge_list = {}
-    local t = false
-    local k = 0
-    t,k = ValidHu(pai,i+2,n)
-    if t == true and k == 0 then       
-     -- 限制 k == 0 可以解决 如 {11,11,11,12,12,12,13,13,13} 被拆分成
-     -- {11,12,13}  {11,11} {12,12} {13,13} 的情况
-      local list = {}
-      table.insert(list,pai[i])
-      table.insert(list,pai[i])
-      -- 如果是最外层，则将列表插入到新建的二级列表
-      if is_out == true then
-        table.insert(merge_list,list)
-        ValidHu_Split(pai,i+2,n,merge_list,false)
-      else
-        -- 如果不是最外层，则将列表插入到传入的二级列表
-        table.insert(split_list,list)
-        return ValidHu_Split(pai,i+2,n,split_list,false)
-      end
-      
-
-      -- 如果是最外层，则将列表的列表插入三级列表
-      if is_out  == true then
-        table.insert(split_list,merge_list)
-      end
-    end
-  end
-
-  -- 对万，条，饼测试ABC
-   if CheckSinglePaiType(pai[1]) ~= MJ_FENG and CheckSinglePaiType(pai[1]) ~= MJ_ZFB then
-    local merge_list = {}
-    local new_pai = {}
-    local t       = false
-    local list = {}
-    t,new_pai = ValidABC_Split(pai,i,n,list)
-    if t == true then
-      local t2 = false
-      local k  = 0
-      t2,k = ValidHu(new_pai,1,#new_pai)
-      if t2 == true then
-        -- 如果是最外层，则将列表插入到新建的二级列表
-        if is_out == true then
-          table.insert(merge_list,list)
-          ValidHu_Split(new_pai,1,#new_pai,merge_list,false)
-        else
-        -- 如果不是最外层，则将列表插入到传入的二级列表
-          table.insert(split_list,list)
-          return ValidHu_Split(new_pai,1,#new_pai,split_list,false)
-        end
-        
-        -- 如果是最外层，则将列表的列表插入三级列表
-        if is_out  == true then
-          table.insert(split_list,merge_list)
-        end
-      end
-    end
-  end
-  return false,0
-end
-
-local function SplitHuPai(userPai)
-  -- 这个函数最初是为了解决四川麻将中的【带幺牌】设计的
-  -- 接收 : 14张胡牌
-  -- 返回 : 胡牌的组合
-  ----  如接收   {11,11,11,12,12,12,13,13,13,51,51}
-    ---- 返回   {
-             -- {{11,11,11},{12,12,12},{13,13,13},{51,51}},
-             -- {{11,12,13},{11,12,13},{11,12,13},{51,51}}
-             -- }
-  -- 分成四组牌
-  local sort_pai = SortByType(userPai)
-
-  local split_pai = {
-  [MJ_WAN]  = {},
-  [MJ_TIAO] = {},
-  [MJ_BING] = {},
-  [MJ_FENG] = {},
-  [MJ_ZFB]  = {}
-  }
-
-  for i = 1,#sort_pai["My"] do
-    ValidHu_Split(sort_pai["My"][i],1,#sort_pai["My"][i],split_pai[i],true) -- 最后一个参数表示是最外层
-  end
-  -- return split_pai
-  local split_list = {}
-  -- 下面的解法详见《编程之美》 ---- 3.2
-  for i = 1,#split_pai do
-    if #split_pai[i] ~= 0 then
-      table.insert(split_list,split_pai[i])
-    end
-  end
-  local  n = #split_list        -- 一共有n个非空组
-  local  capacity = {}          -- 每个非空组的容量
-  local  pos      = {}          -- 每个非空组当前的位置
-  for i = 1,n do
-    table.insert(capacity,#split_list[i])
-    table.insert(pos,1)
-  end
-
-  local merge_list = {}
-  while true do
-    local t_list = {}
-    for i = 1,#split_list do
-      --table.insert(t_list,split_list[i][pos[i]])
-      for j = 1,#split_list[i][pos[i]] do
-        table.insert(t_list,split_list[i][pos[i]][j])
-      end
-    end
-    table.insert(merge_list,t_list)
-    local k = n
-    while k >= 1 do
-      if pos[k] < capacity[k] then
-        pos[k] =pos[k] + 1
-        break
-      else
-        pos[k] = 1
-        k = k - 1
-      end
-    end
-    if k < 1 then
-      break
-    end
-  end
-  return merge_list
-end
 
 
 
@@ -2170,9 +2181,16 @@ local list = {
 -- --  鸡胡
  -- {11,12,13,21,22,23,33,33,33,41,41,41,51,51},
 -- {11,12,12,12,12,13,13,14,31,31,31,32,32,32},
-{11,11,11,12,12,12,13,13,13}
+{11,11,11,12,12,12,13,13,13},
+{11,12,13},
+{17,18,19},
+{15,16,17}
 }
 
 for i = 1,#list do
-  local split_pai = SplitHuPai(list[i])
+  if CheckDy_SC(list[i]) then
+    io.write("带幺九",'\n')
+  else
+    io.write("不是带幺九",'\n')
+  end
 end

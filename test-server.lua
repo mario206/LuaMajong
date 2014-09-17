@@ -1747,7 +1747,15 @@ end
 local function  CheckDy_SC(userPai)
   -- 带幺
   -- 每组搭子及将牌都带1或9，需缺门
-  --local is_dy = true           -- 初始标记为true
+
+  ----------------------优化---------------------------
+  --如果牌中包含4~6的牌，不可能是带幺九
+  for i = 1,#userPai do
+    local num = CheckSinglePaiNum(userPai[i])
+    if num >= 4 and num <= 6 then return false end
+  end
+  ----------------------优化----------------------------
+
   local found = false          -- 能不能找到1或9
   local split_pai = SplitHuPai(userPai)
 

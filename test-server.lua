@@ -1,4 +1,5 @@
 
+
 --CheckJH()  -- 鸡胡    什么牌都可以胡，可吃碰杠
 --CheckPH()    -- 平胡    全部都是顺子没有刻子
 --CheckPPH()   -- 碰碰胡  全部是刻子没有顺子
@@ -17,20 +18,21 @@
 --CheckSSY()   --十三幺  1 、 9 万筒索，东、南、西、北、中、发、白；以上牌型任意一张牌作将
 
 
-MJ_WAN       = 1    --万
-MJ_TIAO      = 2    --条
-MJ_BING      = 3    --饼
-MJ_FENG      = 4    --东南西北(1357)
-MJ_ZFB       = 5    --中发白(135)
+local MJ_WAN       = 1    --万
+local MJ_TIAO      = 2    --条
+local MJ_BING      = 3    --饼
+local MJ_FENG      = 4    --东南西北(1357)
+local MJ_ZFB       = 5    --中发白(135)
 
-Pai_MING     = 0    --明
-Pai_AN       = 1    --暗
+local Pai_MING     = 0    --明
+local Pai_AN       = 1    --暗
 
-Pai_My       = 0    --手牌组
-Pai_Chi      = 1    --吃牌组
-Pai_Peng     = 2    --碰牌组
-Pai_Gang     = 3    --杠牌组
-Pai_Ting     = 4    --听牌组
+local Pai_My       = 0    --手牌组
+local Pai_Chi      = 1    --吃牌组
+local Pai_Peng     = 2    --碰牌组
+local Pai_Gang     = 3    --杠牌组
+local Pai_Ting     = 4    --听牌组
+
 
 
 local function CheckSinglePaiMingAn(pai)
@@ -254,7 +256,7 @@ local function ValidHu(pai,i,n)
     local t = false
     local k = 0
     t,k = ValidHu(pai,i+3,n,0)
-    if t == true then return true,k  end
+    if t == true then return true,k end
   end
 
   -- 测试AA
@@ -262,7 +264,7 @@ local function ValidHu(pai,i,n)
     local t = false
     local k = 0
     t,k = ValidHu(pai,i+2,n)
-    if t == true then return true,k + 1 end
+    if t == true and k == 0 then return true,1 end
   end
 
   -- 对万，条，饼测试ABC
@@ -484,10 +486,9 @@ function CheckGangPai(userPai,prePai,isNotZiMo)
   local attribute = {["Gang"]={}}
 
   local paiType = CheckSinglePaiType(prePai)
-  if(#paiGroup["My"][paiType])
+  if #paiGroup["My"][paiType]
   then
-    if isNotZiMo ~= 0
-    then
+      --明杠、暗杠
       for i=1,#(paiGroup["My"][paiType])-2
       do
         if (paiGroup["My"][paiType][i] == prePai) and (paiGroup["My"][paiType][i+1] == prePai) and (paiGroup["My"][paiType][i+2] == prePai)
@@ -496,8 +497,11 @@ function CheckGangPai(userPai,prePai,isNotZiMo)
           table.insert(attribute["Gang"],gang)
         end
       end
-    --加杠
-    else
+  end
+
+  if #paiGroup["Peng"][paiType] and isNotZiMo == 0
+  then 
+      --加杠
       prePai = GetPaiTypeNum(prePai)
       for i=1,#(paiGroup["Peng"][paiType]),3
       do
@@ -507,10 +511,9 @@ function CheckGangPai(userPai,prePai,isNotZiMo)
           table.insert(attribute["Gang"],gang)
         end
       end
-    end
   end
 
-  -- 转换成对应userPai中的绝对位置
+  --转换成对应userPai中的绝对位置
   for i=1,#attribute["Gang"]
   do
     for k=1,#userPai
@@ -1354,7 +1357,6 @@ local function CheckSSY(userPai)
 
 end
 
-
 function CheckHu(userPai)
   --测试胡牌
   --IN:用户牌，自摸牌
@@ -1385,6 +1387,93 @@ function CheckHu(userPai)
     return false end
 
 end
+
+local function PrintPai(userpai)
+  local sort_pai = SortByType(userpai)
+  for i = 1,#sort_pai["My"] do
+    for j = 1,#sort_pai["My"][i] do
+     io.write(sort_pai["My"][i][j],",")
+   end
+    io.write("   ")
+  end
+
+end
+
+function CheckPaiXing(userpai)
+
+  -- if CheckHu(userpai) == false then return 0 end
+  -- PrintPai(userpai)
+  if CheckSSY(userpai)  == true then print("十三幺")  return 16 end
+  if CheckJLBD(userpai) == true then print("九莲宝灯") return 15 end
+  if CheckDSX(userpai)  == true then print("大四喜") return 14 end
+  if CheckDSY(userpai)  == true then print("大三元") return 13 end
+  if CheckQYJ(userpai)  == true then print("清幺九") return 12 end
+  if CheckZYS(userpai)  == true then print("字一色") return 11 end
+  if CheckXSX(userpai)  == true then print("小四喜") return 10 end
+  if CheckXSY(userpai)  == true then print("小三元") return 9 end
+  if CheckHYJ(userpai)  == true then print("混幺九") return 8 end
+  if CheckQP(userpai)   == true then print("清碰") return 7 end
+  if CheckHP(userpai)   == true then print("混碰") return 6 end
+  if CheckQYS(userpai)  == true then print("清一色") return 5 end
+  if CheckHYS(userpai)  == true then print("混一色") return 4 end
+  if CheckPPH(userpai)  == true then print("碰碰胡") return 3 end
+  if CheckPH(userpai)   == true then print("平胡") return 2 end
+  print("鸡胡")
+  return 1
+end
+
+function CheckAll(userPai,aPai,flag)
+  -- 检查所有吃、碰、杠、听、胡
+  --flag参数指定第二个参数：0-自摸牌，1-上家牌，2-其他用户牌
+  --自摸牌不包含在userPai
+
+  --临时属性表(用于返回可操作牌型)
+  local attribute = {
+            ["Peng"] = {},--填每组能碰的牌，用表表示，以1开始，如第三第四张能碰，则填“{3,4}”
+                    ["Chi"]  = {},--填每组能吃的牌，同上
+                    ["Gang"] = {},--同上，填个三个数，如{7,8,9}
+                    ["Ting"] = {},--填可以扔掉的牌，一位数，如{9}
+                    ["Hu"]   = 0  --0表示不能胡，1表示能胡
+            }
+
+  --只有是上家牌才能吃
+  if flag == 1
+  then
+    --吃
+    attribute["Chi"] = CheckChiPai(userPai,aPai)
+  end
+  --不是自摸才能碰
+  if flag ~= 0
+  then
+    --碰
+    attribute["Peng"] = CheckPengPai(userPai,aPai)
+  end
+
+  --听
+  --
+  --胡(自摸)
+  local tempPai = {}
+  for i=1,#userPai do
+    tempPai[i] = userPai[i]
+  end
+  table.insert(tempPai,aPai)
+  if CheckHu(tempPai) == true then
+    attribute["Hu"] = 1
+  end
+  -- if CheckHu(userPai,aPai) == true
+  --   then
+  --     attribute["Hu"] = 1
+  --   end
+
+  --杠(判断胡牌后再判断自摸加杠)
+  attribute["Gang"] = CheckGangPai(userPai,aPai,flag)
+  return attribute
+end
+
+
+--------------------------四川麻将专有胡法-----------------------------------
+
+-------------带幺解法子操作开始-------------
 local function ValidABC_Split(pai,i,n,split_pai)
   -- 顺子要避开 1 222 3  这种可能组成 123 22 的情况
   -- 所以拆成两个列表  (1 2 3)|(22)
@@ -1619,90 +1708,9 @@ local function SplitHuPai(userPai)
   end
   return merge_list
 end
-local function PrintPai(userpai)
-  local sort_pai = SortByType(userpai)
-  for i = 1,#sort_pai["My"] do
-    for j = 1,#sort_pai["My"][i] do
-     io.write(sort_pai["My"][i][j],",")
-   end
-    io.write("   ")
-  end
-
-end
-
-function CheckPaiXing(userpai)
-
-  -- if CheckHu(userpai) == false then return 0 end
-  -- PrintPai(userpai)
-  if CheckSSY(userpai)  == true then print("十三幺")  return 16 end
-  if CheckJLBD(userpai) == true then print("九莲宝灯") return 15 end
-  if CheckDSX(userpai)  == true then print("大四喜") return 14 end
-  if CheckDSY(userpai)  == true then print("大三元") return 13 end
-  if CheckQYJ(userpai)  == true then print("清幺九") return 12 end
-  if CheckZYS(userpai)  == true then print("字一色") return 11 end
-  if CheckXSX(userpai)  == true then print("小四喜") return 10 end
-  if CheckXSY(userpai)  == true then print("小三元") return 9 end
-  if CheckHYJ(userpai)  == true then print("混幺九") return 8 end
-  if CheckQP(userpai)   == true then print("清碰") return 7 end
-  if CheckHP(userpai)   == true then print("混碰") return 6 end
-  if CheckQYS(userpai)  == true then print("清一色") return 5 end
-  if CheckHYS(userpai)  == true then print("混一色") return 4 end
-  if CheckPPH(userpai)  == true then print("碰碰胡") return 3 end
-  if CheckPH(userpai)   == true then print("平胡") return 2 end
-  print("鸡胡")
-  return 1
-end
-
-function CheckAll(userPai,aPai,flag)
-  -- 检查所有吃、碰、杠、听、胡
-  --flag参数指定第二个参数：0-自摸牌，1-上家牌，2-其他用户牌
-  --自摸牌不包含在userPai
-
-  --临时属性表(用于返回可操作牌型)
-  local attribute = {
-            ["Peng"] = {},--填每组能碰的牌，用表表示，以1开始，如第三第四张能碰，则填“{3,4}”
-                    ["Chi"]  = {},--填每组能吃的牌，同上
-                    ["Gang"] = {},--同上，填个三个数，如{7,8,9}
-                    ["Ting"] = {},--填可以扔掉的牌，一位数，如{9}
-                    ["Hu"]   = 0  --0表示不能胡，1表示能胡
-            }
-
-  --只有是上家牌才能吃
-  if flag == 1
-  then
-    --吃
-    attribute["Chi"] = CheckChiPai(userPai,aPai)
-  end
-  --不是自摸才能碰
-  if flag ~= 0
-  then
-    --碰
-    attribute["Peng"] = CheckPengPai(userPai,aPai)
-  end
-
-  --听
-  --
-  --胡(自摸)
-  local tempPai = {}
-  for i=1,#userPai do
-    tempPai[i] = userPai[i]
-  end
-  table.insert(tempPai,aPai)
-  if CheckHu(tempPai) == true then
-    attribute["Hu"] = 1
-  end
-  -- if CheckHu(userPai,aPai) == true
-  --   then
-  --     attribute["Hu"] = 1
-  --   end
-
-  --杠(判断胡牌后再判断自摸加杠)
-  attribute["Gang"] = CheckGangPai(userPai,aPai,flag)
-  return attribute
-end
+-------------带幺解法子操作结束-------------
 
 
---------------------------四川麻将专有胡法-----------------------------------
 local function CheckQueMen( userPai ,dingzhang )
   -- 检测缺门
   for i,v in ipairs(userPai) do
@@ -1744,7 +1752,7 @@ local function CheckQys_SC( userPai )
   end
 end
 
-local function  CheckDy_SC(userPai)
+local function  CheckDy_SC( userPai )
   -- 带幺
   -- 每组搭子及将牌都带1或9，需缺门
 
@@ -1774,12 +1782,8 @@ local function  CheckDy_SC(userPai)
     -- 如果扫完完整的一组时found == true 直接返回
     if found == true then return true end
   end
-  
+
   return found
-
-
-
-
 end
 
 local function CheckAqd_SC( userPai )
@@ -1924,6 +1928,21 @@ function CheckHu_SC( userPai,dingzhang )
 
 end
 
+function  CheckPaiXing_SC( userPai )
+  -- 四川胡牌型的检测
+  -- 前提是能胡，此处不作判定
+  if CheckQlqd_SC(userPai) == true then print("清龙七对")  return 10 end
+  if CheckQdy_SC(userPai)  == true then print("清带幺")    return 9 end
+  if CheckQqd_SC(userPai)  == true then print("清七对")    return 8 end
+  if CheckLqd_SC(userPai)  == true then print("龙七对")    return 7 end
+  if CheckQdd_SC(userPai)  == true then print("清大对")    return 6 end
+  if CheckAqd_SC(userPai)  == true then print("暗七对")    return 5 end
+  if CheckDy_SC(userPai)   == true then print("带幺")      return 4 end
+  if CheckQys_SC(userPai)  == true then print("清一色")    return 3 end
+  if CheckDdz_SC(userPai)  == true then print("大对子")    return 2 end
+  print("平胡")
+  return 1
+end
 
 
 -------------------------AI部分--------------------
@@ -2115,9 +2134,6 @@ function checkAIAction(AIPai,testPai)
 end
 
 
-
-
-
 ---------------------------------- 测试  --------------------------------------------------------------------
 
 local list = {
@@ -2187,18 +2203,30 @@ local list = {
 -- --  平胡
 -- {11,12,13,21,22,23,31,32,33,17,18,19,51,51},
 -- --  鸡胡
- -- {11,12,13,21,22,23,33,33,33,41,41,41,51,51},
--- {11,12,12,12,12,13,13,14,31,31,31,32,32,32},
-{11,11,11,12,12,12,13,13,13},
-{11,12,13},
-{17,18,19},
-{15,16,17}
-}
+-- {11,12,13,21,22,23,33,33,33,41,41,41,51,51},
+-- {11,12,12,12,12,13,13,14,31,31,31,32,32,32}
+   {31,31,33,33,37,37,38,38,39,53,53,55,55,55},
+   {11,11,11,12,12,12,15,15,15,14,14,25,25,25},
+   {11,11,12,12,12,22,22,22,23,23,23,24,24,24},
+   {11,12,13,12,12,12,13,13,13,14,14,14,16,16},
 
+   {11,11,12,12,13,13,14,14,16,16,18,18,19,19},
+   {11,11,11,11,12,13,17,18,19,17,18,19,19,19},
+   {11,11,12,12,13,13,13,13}
+}
 for i = 1,#list do
-  if CheckDy_SC(list[i]) then
-    io.write("带幺九",'\n')
+  if CheckHu(list[i]) == true then
+    print("胡")
+--  CheckPaiXing_SC(list[7])
   else
-    io.write("不是带幺九",'\n')
+    print("no")
   end
 end
+
+--temp = {11,11,13,15,16,16,22,23,24,24,25,26,34}
+--local atype,alist = checkAIAction(temp,12)
+--print(atype)
+--for i,v in ipairs(alist) do
+--  print(i,v)
+--end
+
